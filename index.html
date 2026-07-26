@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sai Pranav — CS @ UMass Amherst</title>
+<meta name="description" content="Computer Science at UMass Amherst. AI, cloud, and distributed systems. Open to Summer 2027 internships." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#080B14;
+  --panel:#0D1322;
+  --line:#1B2438;
+  --text:#C7D2E4;
+  --muted:#64748B;
+  --signal:#4CC9F0;
+  --pulse:#A78BFA;
+  --ok:#4ADE80;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ink);
+  color:var(--text);
+  font-family:'JetBrains Mono',ui-monospace,monospace;
+  font-size:15px;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:72px 72px;
+  opacity:.28;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 20%,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 20%,transparent 75%);
+}
+.wrap{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:0 28px}
+
+/* ---------- rail ---------- */
+.rail{
+  position:fixed;left:32px;top:50%;transform:translateY(-50%);z-index:20;
+  display:flex;flex-direction:column;gap:18px;
+}
+.rail a{
+  display:flex;align-items:center;gap:10px;text-decoration:none;
+  font-size:10px;letter-spacing:.18em;color:var(--muted);
+  transition:color .25s;
+}
+.rail a::before{
+  content:'';width:22px;height:1px;background:var(--line);transition:all .25s;
+}
+.rail a:hover,.rail a.on{color:var(--signal)}
+.rail a:hover::before,.rail a.on::before{background:var(--signal);width:38px}
+.rail a:focus-visible{outline:1px solid var(--signal);outline-offset:4px}
+
+/* ---------- hero ---------- */
+header{min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:80px 0 60px}
+.log{
+  font-size:12.5px;line-height:2.1;color:var(--muted);
+  border-left:1px solid var(--line);padding-left:18px;margin-bottom:44px;
+  min-height:150px;
+}
+.log b{color:var(--signal);font-weight:500}
+.log .ok{color:var(--ok)}
+.log .pl{color:var(--pulse)}
+.caret{display:inline-block;width:7px;height:14px;background:var(--signal);vertical-align:-2px;animation:blink 1.05s steps(2) infinite}
+@keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+
+h1{
+  font-family:'Space Grotesk',sans-serif;font-weight:700;
+  font-size:clamp(46px,10.5vw,104px);line-height:.92;letter-spacing:-.045em;
+  color:#fff;margin-bottom:22px;
+}
+h1 span{color:var(--signal)}
+.sub{
+  font-size:14px;color:var(--muted);max-width:52ch;margin-bottom:34px;
+}
+.sub em{color:var(--text);font-style:normal}
+.tags{display:flex;flex-wrap:wrap;gap:9px}
+.tag{
+  font-size:10.5px;letter-spacing:.14em;padding:7px 13px;
+  border:1px solid var(--line);border-radius:2px;color:var(--muted);
+}
+.tag.live{border-color:rgba(76,201,240,.35);color:var(--signal)}
+.tag.live::before{
+  content:'';display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:var(--signal);margin-right:8px;vertical-align:1px;
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(76,201,240,.5)}50%{opacity:.65;box-shadow:0 0 0 5px rgba(76,201,240,0)}}
+
+/* ---------- sections ---------- */
+section{padding:96px 0;border-top:1px solid var(--line)}
+.head{display:flex;align-items:baseline;gap:16px;margin-bottom:44px}
+.num{font-size:11px;color:var(--pulse);letter-spacing:.1em}
+.head h2{
+  font-family:'Space Grotesk',sans-serif;font-weight:500;
+  font-size:13px;letter-spacing:.26em;color:var(--text);text-transform:uppercase;
+}
+.head .fill{flex:1;height:1px;background:var(--line)}
+
+dl{display:grid;grid-template-columns:150px 1fr;gap:16px 28px}
+dt{font-size:11px;letter-spacing:.14em;color:var(--muted);padding-top:2px}
+dd{font-size:14.5px;color:var(--text)}
+dd a{color:var(--signal);text-decoration:none;border-bottom:1px solid rgba(76,201,240,.3)}
+dd a:hover{border-color:var(--signal)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.cell{background:var(--ink);padding:20px 18px;transition:background .25s}
+.cell:hover{background:var(--panel)}
+.cell b{display:block;font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.cell i{font-style:normal;font-size:10.5px;letter-spacing:.1em;color:var(--muted)}
+
+.proj{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);padding:26px;margin-bottom:14px;transition:border-color .25s,transform .25s}
+.proj:hover{border-color:rgba(76,201,240,.4);transform:translateX(4px)}
+.proj:focus-visible{outline:1px solid var(--signal);outline-offset:3px}
+.proj .top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:8px}
+.proj h3{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:500;color:#fff}
+.proj .st{font-size:10px;letter-spacing:.14em;color:var(--pulse);white-space:nowrap}
+.proj p{font-size:13.5px;color:var(--muted);max-width:60ch}
+.proj .meta{margin-top:14px;font-size:10.5px;letter-spacing:.1em;color:var(--muted)}
+
+.links{display:flex;flex-wrap:wrap;gap:12px}
+.links a{
+  display:inline-flex;align-items:center;gap:10px;text-decoration:none;
+  border:1px solid var(--line);padding:14px 22px;color:var(--text);
+  font-size:12.5px;letter-spacing:.06em;transition:all .25s;
+}
+.links a:hover{border-color:var(--signal);color:var(--signal)}
+.links a:focus-visible{outline:1px solid var(--signal);outline-offset:3px}
+
+footer{border-top:1px solid var(--line);padding:36px 0 52px;font-size:11px;letter-spacing:.1em;color:var(--muted);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+.rv{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.2,.7,.3,1),transform .7s cubic-bezier(.2,.7,.3,1)}
+.rv.in{opacity:1;transform:none}
+
+@media(max-width:1180px){.rail{display:none}}
+@media(max-width:620px){
+  dl{grid-template-columns:1fr;gap:6px 0}
+  dt{margin-top:12px}
+  section{padding:72px 0}
+  .log{font-size:11px;min-height:170px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .rv{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="rail" aria-label="Sections">
+  <a href="#env">01 ENV</a>
+  <a href="#deps">02 DEPS</a>
+  <a href="#build">03 BUILD</a>
+  <a href="#link">04 LINK</a>
+</nav>
+
+<div class="wrap">
+
+<header>
+  <div class="log" id="log" aria-live="polite"></div>
+  <h1>SAI<br>PRANAV<span>.</span></h1>
+  <p class="sub">Computer Science at <em>UMass Amherst</em>. I care about the part where things actually run — AI systems, cloud infrastructure, and the messy middle between them.</p>
+  <div class="tags">
+    <span class="tag live">OPEN TO SUMMER 2027 INTERNSHIPS</span>
+    <span class="tag">AMHERST, MA</span>
+    <span class="tag">BOSTON · NYC · NORTHEAST</span>
+  </div>
+</header>
+
+<section id="env" class="rv">
+  <div class="head"><span class="num">01</span><h2>Environment</h2><span class="fill"></span></div>
+  <dl>
+    <dt>SCHOOL</dt><dd>University of Massachusetts Amherst</dd>
+    <dt>PROGRAM</dt><dd>B.S. Computer Science, 2026 – 2030</dd>
+    <dt>FOCUS</dt><dd>AI / ML · Cloud Computing · Distributed Systems</dd>
+    <dt>APPROACH</dt><dd>Build it, break it, read the docs after. Practice over theory.</dd>
+    <dt>SEEKING</dt><dd>Summer 2027 software / AI internships — startups welcome</dd>
+    <dt>WRITING AT</dt><dd><a href="https://github.com/pranavappecharla">github.com/pranavappecharla</a></dd>
+  </dl>
+</section>
+
+<section id="deps" class="rv">
+  <div class="head"><span class="num">02</span><h2>Dependencies</h2><span class="fill"></span></div>
+  <div class="grid">
+    <div class="cell"><b>Python</b><i>PRIMARY</i></div>
+    <div class="cell"><b>Java</b><i>PRIMARY</i></div>
+    <div class="cell"><b>AWS</b><i>CLOUD</i></div>
+    <div class="cell"><b>Linux</b><i>ENVIRONMENT</i></div>
+    <div class="cell"><b>Git</b><i>VERSION CONTROL</i></div>
+    <div class="cell"><b>Claude</b><i>DAILY DRIVER</i></div>
+  </div>
+</section>
+
+<section id="build" class="rv">
+  <div class="head"><span class="num">03</span><h2>Build Log</h2><span class="fill"></span></div>
+
+  <a class="proj" href="https://github.com/pranavappecharla">
+    <div class="top"><h3>Caligo</h3><span class="st">IN PROGRESS</span></div>
+    <p>A personal assistant agent — Cognitive Architecture for Logic, Inference &amp; Generative Optimization. Exploring how far context, tools, and memory can carry an agent before it needs a human.</p>
+    <div class="meta">PYTHON · LLM TOOLING · AGENTS</div>
+  </a>
+
+  <a class="proj" href="https://github.com/pranavappecharla">
+    <div class="top"><h3>Project slot</h3><span class="st">REPLACE ME</span></div>
+    <p>Swap this block for a real project once you ship one. Keep the description to what it does and what you learned — no adjectives.</p>
+    <div class="meta">STACK · STACK · STACK</div>
+  </a>
+</section>
+
+<section id="link" class="rv">
+  <div class="head"><span class="num">04</span><h2>Link</h2><span class="fill"></span></div>
+  <p class="sub" style="margin-bottom:26px">Open to internships, side projects, and anything where I'd learn faster than I would alone.</p>
+  <div class="links">
+    <a href="https://github.com/pranavappecharla">GitHub ↗</a>
+    <a href="https://linkedin.com/in/pranavappecharla">LinkedIn ↗</a>
+    <a href="mailto:pranav.appecharla@gmail.com">Email ↗</a>
+  </div>
+</section>
+
+<footer>
+  <span>SAI PRANAV APPECHARLA VENKATA</span>
+  <span>BUILT FROM SCRATCH · <span id="yr"></span></span>
+</footer>
+
+</div>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+const lines = [
+  ['$ ','init --profile sai-pranav',''],
+  ['','resolving environment','ok'],
+  ['','umass amherst · b.s. computer science','ok'],
+  ['','linking interests: ai, cloud, systems','ok'],
+  ['','status: <b>open to summer 2027 internships</b>',''],
+  ['$ ','ready.','']
+];
+const el = document.getElementById('log');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function render(upto, partial){
+  let html = '';
+  for(let i=0;i<upto;i++){
+    const [p,t,s] = lines[i];
+    html += '<div><span class="pl">'+p+'</span>'+t+(s?' <span class="ok">['+s+']</span>':'')+'</div>';
+  }
+  if(partial!==null && upto<lines.length){
+    const [p,t] = lines[upto];
+    html += '<div><span class="pl">'+p+'</span>'+t.slice(0,partial)+'<span class="caret"></span></div>';
+  }
+  el.innerHTML = html;
+}
+
+if(reduced){
+  render(lines.length,null);
+}else{
+  let i=0,c=0;
+  (function tick(){
+    if(i>=lines.length){ render(lines.length,null); return; }
+    const plain = lines[i][1].replace(/<[^>]+>/g,'');
+    if(c<=plain.length){ render(i,c); c++; setTimeout(tick,22); }
+    else { i++; c=0; setTimeout(tick,190); }
+  })();
+}
+
+const io = new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('in'); });
+},{threshold:.12});
+document.querySelectorAll('.rv').forEach(s=>io.observe(s));
+
+const railLinks = [...document.querySelectorAll('.rail a')];
+const spy = new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(e.isIntersecting){
+      railLinks.forEach(a=>a.classList.toggle('on', a.getAttribute('href')==='#'+e.target.id));
+    }
+  });
+},{rootMargin:'-45% 0px -50% 0px'});
+document.querySelectorAll('section[id]').forEach(s=>spy.observe(s));
+</script>
+</body>
+</html>
