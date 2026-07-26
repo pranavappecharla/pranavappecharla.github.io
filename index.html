@@ -7,19 +7,29 @@
 <title>Pranav Appecharla — CS @ UMass Amherst</title>
 <meta name="description" content="Computer Science at UMass Amherst. AI systems and cloud infrastructure, with an interest in the part where things have to hold up outside the demo. Open to Summer 2027 internships." />
 <meta name="author" content="Sai Pranav Appecharla Venkata" />
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+<meta name="color-scheme" content="dark light" />
 
-<!-- TODO: replace with your real domain before publishing -->
 <link rel="canonical" href="https://pranavappecharla.github.io/" />
 
 <meta property="og:type" content="profile" />
+<meta property="og:site_name" content="Pranav Appecharla" />
+<meta property="og:locale" content="en_US" />
 <meta property="og:title" content="Pranav Appecharla — CS @ UMass Amherst" />
 <meta property="og:description" content="AI systems, cloud infrastructure, and the part where it has to actually hold up." />
 <meta property="og:url" content="https://pranavappecharla.github.io/" />
 <!-- TODO: add a 1200x630 og-image.png next to this file. Link previews are blank without it. -->
 <meta property="og:image" content="https://pranavappecharla.github.io/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Pranav Appecharla — Computer Science at UMass Amherst" />
+<meta property="profile:first_name" content="Pranav" />
+<meta property="profile:last_name" content="Appecharla" />
+<meta property="profile:username" content="pranavappecharla" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Pranav Appecharla — CS @ UMass Amherst" />
 <meta name="twitter:description" content="AI systems, cloud infrastructure, and the part where it has to actually hold up." />
+<meta name="twitter:image" content="https://pranavappecharla.github.io/og-image.png" />
 
 <meta name="theme-color" content="#05070C" media="(prefers-color-scheme: dark)" />
 <meta name="theme-color" content="#F2F0EB" media="(prefers-color-scheme: light)" />
@@ -33,16 +43,33 @@
 
 <script>
 /* Runs before first paint: prevents a flash of the wrong theme, and marks
-   that JS is alive so CSS can safely hide things it will later reveal. */
+   that JS is alive so CSS can safely hide things it will later reveal.
+
+   Two attributes, deliberately:
+     data-theme-pref  what the human chose        (auto | light | dark)
+     data-theme       what that resolves to now   (light | dark)
+   Keeping them separate is what lets "auto" keep tracking the OS instead of
+   freezing at whatever the OS happened to be on the first visit. */
 (function () {
   var d = document.documentElement;
   d.classList.add('js');
-  var t = null;
-  try { t = localStorage.getItem('theme'); } catch (e) {}
-  if (t !== 'light' && t !== 'dark') {
-    t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-  }
-  d.setAttribute('data-theme', t);
+
+  var pref = null;
+  try {
+    pref = localStorage.getItem('theme-pref');
+    if (pref === null) {
+      // Migrate the older two-state key so returning visitors keep their choice.
+      var legacy = localStorage.getItem('theme');
+      if (legacy === 'light' || legacy === 'dark') pref = legacy;
+    }
+  } catch (e) {}
+  if (pref !== 'light' && pref !== 'dark' && pref !== 'auto') pref = 'auto';
+
+  d.setAttribute('data-theme-pref', pref);
+  d.setAttribute('data-theme',
+    pref === 'auto'
+      ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+      : pref);
 })();
 </script>
 
@@ -67,6 +94,7 @@
   --lift:0 1px 0 rgba(255,255,255,.2) inset,0 -1px 0 rgba(255,255,255,.045) inset,0 24px 70px -22px rgba(0,0,0,.75),0 2px 10px rgba(0,0,0,.26);
   --fog-a:.52; --fog-b:.5; --fog-c:.3;
   --grain:.3;
+  --scrim:rgba(5,7,12,.74);
 
   --r:24px;
   --r-sm:15px;
@@ -96,6 +124,7 @@
   --lift:0 1px 0 rgba(255,255,255,.9) inset,0 14px 40px -20px rgba(28,32,44,.28),0 1px 3px rgba(28,32,44,.06);
   --fog-a:.3; --fog-b:.26; --fog-c:.2;
   --grain:.16;
+  --scrim:rgba(242,240,235,.72);
 
   color-scheme:light;
 }
@@ -104,7 +133,15 @@
    BASE
    ============================================================ */
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+html{
+  scroll-behavior:smooth;
+  -webkit-text-size-adjust:100%;
+  /* Reserves the scrollbar column so locking scroll for the palette
+     doesn't shove the whole page sideways. */
+  scrollbar-gutter:stable;
+  /* Anchored jumps land below the fixed chrome instead of under it. */
+  scroll-padding-top:88px;
+}
 body{
   background:var(--void);
   color:var(--text);
@@ -128,6 +165,9 @@ img{max-width:100%;display:block}
 /* One focus treatment for the whole page. */
 :focus-visible{outline:2px solid var(--aqua);outline-offset:3px;border-radius:4px}
 
+/* Visually hidden but still announced. */
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
 .skip{
   position:absolute;left:12px;top:-100px;z-index:200;
   padding:12px 20px;border-radius:100px;
@@ -139,8 +179,8 @@ img{max-width:100%;display:block}
 
 /* ============================================================
    ATMOSPHERE
-   Cheaper than the original: 3 blobs instead of 4, no mix-blend-mode
-   (it forced a full-screen blend every frame), smaller blur radius.
+   Three blobs, no mix-blend-mode (it forced a full-screen blend
+   every frame), modest blur radius.
    ============================================================ */
 .fogwrap{position:fixed;inset:0;z-index:0;pointer-events:none;will-change:transform;contain:strict}
 .fog{position:absolute;inset:-25%;filter:blur(64px)}
@@ -158,19 +198,37 @@ img{max-width:100%;display:block}
 @keyframes drift-b{0%,100%{transform:translate3d(0,0,0) scale(1)}33%{transform:translate3d(-10vw,9vh,0) scale(.9)}66%{transform:translate3d(5vw,-5vh,0) scale(1.16)}}
 @keyframes drift-c{0%,100%{transform:translate3d(0,0,0) scale(1.04)}50%{transform:translate3d(10vw,-8vh,0) scale(.88)}}
 
+/* Everything decorative stops when the tab is in the background.
+   Previously only the ticker did, and three blob animations kept a
+   backgrounded tab repainting forever. */
+.paused .fog i,
+.paused .tk,
+.paused .dot,
+.paused .pri{animation-play-state:paused}
+
 .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:var(--grain);
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E")}
 .vig{position:fixed;inset:0;z-index:1;pointer-events:none;
   background:radial-gradient(ellipse 120% 90% at 50% 40%,transparent 32%,color-mix(in srgb,var(--void) 72%,transparent) 88%)}
 
-.prog{position:fixed;top:0;left:0;height:2px;width:0;z-index:60;transform-origin:0 50%;
+/* Progress bar. Driven by CSS scroll-timeline where that exists, and by a
+   scroll listener where it doesn't — see the @supports block and the
+   matching feature test in JS, which are kept in sync. */
+.prog{
+  position:fixed;top:0;left:0;height:2px;width:100%;z-index:60;
+  transform:scaleX(0);transform-origin:0 50%;
   background:linear-gradient(90deg,var(--aqua),var(--iris) 60%,var(--ember));
-  box-shadow:0 0 14px color-mix(in srgb,var(--aqua) 55%,transparent)}
+  box-shadow:0 0 14px color-mix(in srgb,var(--aqua) 55%,transparent);
+}
+@keyframes prog-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@supports (animation-timeline:scroll()){
+  .prog{animation:prog-grow linear both;animation-timeline:scroll(root block)}
+}
 
 /* ============================================================
    PANE — the glass primitive.
    backdrop-filter is expensive and each instance is a separate
-   backdrop capture, so it lives only on the big surfaces now.
+   backdrop capture, so it lives only on the big surfaces.
    ============================================================ */
 .pane{
   position:relative;
@@ -190,7 +248,7 @@ img{max-width:100%;display:block}
   pointer-events:none;z-index:2;
 }
 
-/* Tilt + specular now only on things you can actually click. */
+/* Tilt + specular only on things you can actually click. */
 .tilt{transform-style:preserve-3d;transition:transform .5s cubic-bezier(.22,.7,.3,1),box-shadow .4s}
 .tilt::before{
   content:'';position:absolute;inset:0;border-radius:inherit;z-index:1;pointer-events:none;
@@ -201,8 +259,17 @@ img{max-width:100%;display:block}
 
 .wrap{position:relative;z-index:3;max-width:1010px;margin:0 auto;padding:0 24px}
 
+/* Ring pulse used when the palette jumps you somewhere, so you can see
+   which of eleven near-identical cards it actually meant. */
+@keyframes flash{
+  0%,100%{box-shadow:var(--lift),0 0 0 0 transparent}
+  22%,68%{box-shadow:var(--lift),0 0 0 2px var(--aqua),0 0 34px -6px color-mix(in srgb,var(--aqua) 70%,transparent)}
+}
+.flash{animation:flash 1.6s cubic-bezier(.3,.7,.3,1)}
+:target{scroll-margin-top:88px}
+
 /* ============================================================
-   FIXED CHROME — rail, theme switch, cursor
+   FIXED CHROME — rail, theme switch, cursor, floating actions
    ============================================================ */
 .rail{
   position:fixed;left:22px;top:50%;transform:translateY(-50%);z-index:40;
@@ -219,6 +286,17 @@ img{max-width:100%;display:block}
 }
 .rail a:hover{color:var(--text)}
 .rail a[aria-current="true"]{color:var(--void);background:var(--aqua);box-shadow:0 0 16px color-mix(in srgb,var(--aqua) 50%,transparent)}
+/* The rail used to be six unlabelled numbers. Now it says what it means. */
+.rail a::after{
+  content:attr(data-label);
+  position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%) translateX(-4px);
+  padding:6px 11px;border-radius:8px;white-space:nowrap;pointer-events:none;
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text);background:color-mix(in srgb,var(--void) 82%,var(--text));
+  box-shadow:0 0 0 1px var(--hair-2),0 10px 26px -12px rgba(0,0,0,.8);
+  opacity:0;transition:opacity .22s,transform .22s;
+}
+.rail a:hover::after,.rail a:focus-visible::after{opacity:1;transform:translateY(-50%) translateX(0)}
 
 .switch{
   position:fixed;top:20px;right:22px;z-index:40;
@@ -234,9 +312,12 @@ img{max-width:100%;display:block}
 }
 .switch:hover{color:var(--text);transform:translateY(-1px)}
 .switch svg{width:13px;height:13px;flex:none}
-/* The icon shows the destination, not the current state. */
-[data-theme="dark"] .switch .i-moon{display:none}
-[data-theme="light"] .switch .i-sun{display:none}
+/* Three states now, so the icon shows the CURRENT one. (Showing the
+   destination only reads as unambiguous when there are exactly two.) */
+.switch .i{display:none}
+[data-theme-pref="auto"]  .switch .i-auto{display:block}
+[data-theme-pref="light"] .switch .i-sun{display:block}
+[data-theme-pref="dark"]  .switch .i-moon{display:block}
 
 /* Magnetic cursor. No backdrop-filter — that version composited the whole
    viewport every frame. This is a cheap ring that reacts to hit targets. */
@@ -248,6 +329,30 @@ img{max-width:100%;display:block}
   transition:opacity .3s,width .3s cubic-bezier(.22,.7,.3,1),height .3s cubic-bezier(.22,.7,.3,1),margin .3s cubic-bezier(.22,.7,.3,1),background .3s,border-color .3s;
 }
 .cursor.hot{width:52px;height:52px;margin:-26px 0 0 -26px;background:color-mix(in srgb,var(--aqua) 14%,transparent)}
+
+/* Floating actions. The command palette used to be keyboard-only, which
+   meant it did not exist on a phone — where the section rail is also
+   hidden. This is the touch entry point to both. */
+.fabs{
+  position:fixed;right:18px;bottom:20px;z-index:45;
+  display:flex;flex-direction:column;gap:9px;
+}
+.fab{
+  width:46px;height:46px;border-radius:50%;border:0;cursor:pointer;
+  display:grid;place-items:center;
+  background:var(--pane-flat);color:var(--text);
+  box-shadow:0 1px 0 rgba(255,255,255,.18) inset,0 0 0 1px var(--hair),0 12px 30px -14px rgba(0,0,0,.8);
+  opacity:0;transform:translateY(10px) scale(.9);pointer-events:none;
+  transition:opacity .3s,transform .3s,box-shadow .3s;
+}
+@supports (backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px)){
+  .fab{backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%)}
+}
+.fab.on{opacity:1;transform:none;pointer-events:auto}
+.fab:hover{box-shadow:0 1px 0 rgba(255,255,255,.28) inset,0 0 0 1px color-mix(in srgb,var(--aqua) 45%,transparent),0 14px 34px -14px rgba(0,0,0,.85)}
+.fab svg{width:17px;height:17px}
+/* Search is the primary touch affordance; only show it where the rail isn't. */
+@media(min-width:1181px){ .fab-search{display:none} }
 
 /* ============================================================
    HERO
@@ -315,7 +420,7 @@ h1 em{font-style:normal;color:var(--aqua)}
 .kbd-hint{
   margin-top:26px;display:inline-flex;align-items:center;gap:9px;
   font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--faint);
-  background:none;border:0;padding:6px 0;cursor:pointer;transition:color .3s;
+  background:none;border:0;padding:6px 0;cursor:pointer;transition:color .3s;text-align:left;
 }
 .kbd-hint:hover{color:var(--text)}
 kbd{
@@ -333,7 +438,7 @@ kbd{
   mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
 }
 .tk{display:flex;width:max-content;animation:roll 46s linear infinite}
-.ticker:hover .tk,.paused .tk{animation-play-state:paused}
+.ticker:hover .tk{animation-play-state:paused}
 .tk span{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--faint);padding:0 24px;white-space:nowrap}
 .tk span::after{content:'◆';margin-left:24px;color:color-mix(in srgb,var(--aqua) 40%,transparent);font-size:7px;vertical-align:2px}
 @keyframes roll{to{transform:translateX(-50%)}}
@@ -361,14 +466,29 @@ kbd{
   font-family:var(--display);font-weight:800;font-size:82px;letter-spacing:-.06em;
   color:var(--text);opacity:.035;pointer-events:none;z-index:1;line-height:1;
 }
+/* Copy a deep link to any section — the thing you actually want when you're
+   pasting one part of a portfolio into a message. */
+.hash{
+  position:relative;z-index:2;flex:none;
+  font-family:var(--mono);font-size:13px;line-height:1;text-decoration:none;
+  color:var(--faint);padding:4px 6px;border-radius:6px;
+  opacity:0;transform:translateX(-4px);
+  transition:opacity .25s,transform .25s,color .25s,background .25s;
+}
+.shead:hover .hash,.hash:focus-visible{opacity:1;transform:none}
+.hash:hover{color:var(--aqua);background:color-mix(in srgb,var(--aqua) 12%,transparent)}
+@media(hover:none){ .hash{opacity:.5;transform:none} }
 
 .pad{padding:34px 38px}
 
-/* Definition list */
-dl{display:grid;grid-template-columns:154px 1fr;gap:0 28px}
+/* Definition list. Rows are wrapped in <div> (valid in HTML5) so the grid
+   can survive without the empty <dt> the old markup needed for alignment —
+   an empty <dt> is a blank term announced to a screen reader. */
+dl{display:grid;gap:0}
+dl > div{display:grid;grid-template-columns:154px 1fr;gap:0 28px}
 dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--faint);padding:14px 0;border-top:1px solid var(--hair)}
 dd{font-size:15.5px;color:var(--text);padding:14px 0;border-top:1px solid var(--hair);line-height:1.6}
-dl>dt:first-child,dl>dt:first-child+dd{border-top:0}
+dl > div:first-child dt,dl > div:first-child dd{border-top:0}
 dd small{display:block;font-family:var(--mono);font-size:11.5px;color:var(--faint);letter-spacing:.01em;margin-top:4px;line-height:1.6}
 dd a{color:var(--aqua);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--aqua) 32%,transparent);transition:border-color .25s}
 dd a:hover{border-color:var(--aqua)}
@@ -427,6 +547,12 @@ dd a:hover{border-color:var(--aqua)}
 }
 .pill:hover{transform:translateY(-2px);box-shadow:0 0 0 1px color-mix(in srgb,var(--aqua) 45%,transparent)}
 .pill small{font-size:9.5px;letter-spacing:.09em;color:var(--faint);margin-left:6px}
+/* .flash assumes --lift; pills and certs don't have it, so give them their own. */
+.pill.flash,.cert.flash,.sgroup.flash{animation:flash-flat 1.6s cubic-bezier(.3,.7,.3,1)}
+@keyframes flash-flat{
+  0%,100%{box-shadow:0 0 0 1px var(--hair)}
+  22%,68%{box-shadow:0 0 0 2px var(--aqua),0 0 30px -6px color-mix(in srgb,var(--aqua) 70%,transparent)}
+}
 
 /* ============================================================
    WORK
@@ -493,9 +619,13 @@ details.roll .certs{margin-top:9px;margin-bottom:0}
 }
 .cta a:hover,.cta button:hover{transform:translateY(-2px);box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 0 0 1px color-mix(in srgb,var(--aqua) 40%,transparent),0 14px 30px -16px rgba(0,0,0,.85)}
 .cta a.pri{
-  background:linear-gradient(135deg,var(--aqua),var(--iris));color:#05070C;font-weight:500;
+  background:linear-gradient(135deg,var(--aqua),var(--iris),var(--aqua));
+  background-size:220% 100%;
+  color:#05070C;font-weight:500;
+  animation:sheen 9s ease-in-out infinite;
   box-shadow:0 1px 0 rgba(255,255,255,.38) inset,0 10px 30px -14px color-mix(in srgb,var(--aqua) 70%,transparent);
 }
+@keyframes sheen{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 .cta a.pri:hover{color:#05070C;box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 16px 40px -14px color-mix(in srgb,var(--aqua) 85%,transparent)}
 
 footer{
@@ -506,17 +636,23 @@ footer a{color:var(--faint);text-decoration:none;transition:color .3s}
 footer a:hover{color:var(--aqua)}
 
 /* ============================================================
-   COMMAND PALETTE — the signature element
+   COMMAND PALETTE — the signature element.
+   Native <dialog> + showModal(), which buys a real focus trap, inert
+   background content, and top-layer stacking that no z-index can lose to.
    ============================================================ */
-.pal{
-  position:fixed;inset:0;z-index:100;display:none;
-  padding:12vh 20px 20px;justify-content:center;align-items:flex-start;
-  background:color-mix(in srgb,var(--void) 72%,transparent);
+dialog.pal{
+  position:fixed;inset:0;z-index:100;
+  width:100%;max-width:100%;height:100%;max-height:100%;
+  margin:0;border:0;padding:12vh 20px 20px;
+  background:transparent;color:inherit;overflow:visible;
+  display:none;
 }
+dialog.pal[open]{display:flex;justify-content:center;align-items:flex-start}
+dialog.pal::backdrop{background:rgba(5,7,12,.74)}
+html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
 @supports (backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px)){
-  .pal{backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+  dialog.pal::backdrop{backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 }
-.pal[open]{display:flex}
 .palbox{
   width:100%;max-width:540px;border-radius:18px;overflow:hidden;
   background:color-mix(in srgb,var(--void) 82%,var(--text));
@@ -525,23 +661,26 @@ footer a:hover{color:var(--aqua)}
 }
 [data-theme="light"] .palbox{background:#FFFFFF}
 @keyframes pal-in{from{opacity:0;transform:translateY(-10px) scale(.985)}to{opacity:1;transform:none}}
+.palhead{display:flex;align-items:center;gap:12px;padding:0 18px;border-bottom:1px solid var(--hair)}
+.palhead svg{width:15px;height:15px;color:var(--faint);flex:none}
 .palbox input{
-  width:100%;padding:19px 22px;border:0;outline:0;background:transparent;color:var(--text);
+  flex:1;width:100%;padding:19px 4px;border:0;outline:0;background:transparent;color:var(--text);
   font-family:var(--mono);font-size:14.5px;letter-spacing:.01em;
-  border-bottom:1px solid var(--hair);
 }
 .palbox input::placeholder{color:var(--faint)}
 .pallist{max-height:min(52vh,400px);overflow-y:auto;padding:8px;overscroll-behavior:contain}
 .palgroup{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:var(--faint);padding:11px 14px 6px}
 .palitem{
   display:flex;align-items:center;gap:13px;width:100%;text-align:left;
-  padding:11px 14px;border-radius:11px;border:0;background:transparent;color:var(--dim);
+  padding:11px 14px;border-radius:11px;background:transparent;color:var(--dim);
   font-family:var(--display);font-size:14.5px;cursor:pointer;transition:background .15s,color .15s;
 }
-.palitem .ic{font-family:var(--mono);font-size:11px;color:var(--faint);width:17px;text-align:center;flex:none;transition:color .15s}
-.palitem .meta{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--faint)}
+.palitem .ic{font-family:var(--mono);font-size:11px;color:var(--faint);width:19px;text-align:center;flex:none;transition:color .15s}
+.palitem .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.palitem .meta{margin-left:auto;padding-left:12px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--faint);flex:none}
 .palitem[aria-selected="true"]{background:color-mix(in srgb,var(--aqua) 13%,transparent);color:var(--text)}
 .palitem[aria-selected="true"] .ic{color:var(--aqua)}
+.palitem mark{background:none;color:var(--aqua);font-weight:500}
 .palfoot{
   display:flex;gap:18px;padding:11px 18px;border-top:1px solid var(--hair);
   font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--faint);flex-wrap:wrap;
@@ -551,6 +690,7 @@ footer a:hover{color:var(--aqua)}
 .toast{
   position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);z-index:110;
   padding:13px 22px;border-radius:100px;opacity:0;pointer-events:none;
+  max-width:calc(100vw - 32px);text-align:center;
   background:var(--aqua);color:#05070C;
   font-family:var(--mono);font-size:12px;letter-spacing:.06em;
   box-shadow:0 14px 40px -14px rgba(0,0,0,.7);
@@ -560,10 +700,24 @@ footer a:hover{color:var(--aqua)}
 
 /* ============================================================
    SCROLL REVEAL — scoped to .js so the page is fully visible
-   when JavaScript doesn't run. (The original hid everything.)
+   when JavaScript doesn't run.
    ============================================================ */
 .js .rv{opacity:0;transform:translateY(24px);transition:opacity .8s cubic-bezier(.2,.7,.3,1),transform .8s cubic-bezier(.2,.7,.3,1)}
 .js .rv.in{opacity:1;transform:none}
+
+/* ============================================================
+   VIEW TRANSITIONS — theme change wipes out from the button
+   instead of cross-fading the whole document.
+   ============================================================ */
+@supports (view-transition-name:none){
+  /* The 0.5s body colour transition would be captured mid-flight by the
+     snapshot and smear. The wipe replaces it. */
+  body{transition:none}
+}
+::view-transition-old(root),
+::view-transition-new(root){animation:none;mix-blend-mode:normal}
+::view-transition-old(root){z-index:0}
+::view-transition-new(root){z-index:1}
 
 /* ============================================================
    RESPONSIVE
@@ -581,13 +735,14 @@ footer a:hover{color:var(--aqua)}
   .wrap{padding:0 20px}
   .pad{padding:26px 22px}
   .node,.work{padding:22px 22px}
-  dl{grid-template-columns:1fr}
+  dl > div{grid-template-columns:1fr}
   dt{padding:14px 0 0}
   dd{padding:3px 0 14px;border-top:0}
-  dl>dt:first-child{border-top:0}
+  dl > div:first-child dt{border-top:0}
   .stats{grid-template-columns:repeat(2,1fr);gap:22px 0}
   .stat:nth-child(3){border-left:0}
   .fog{filter:blur(48px)}
+  .f3{display:none}          /* third blob is nearly invisible here and costs a layer */
   .pane{backdrop-filter:blur(16px) saturate(165%);-webkit-backdrop-filter:blur(16px) saturate(165%)}
   .sec{padding:40px 0}
   header{padding:88px 0 48px}
@@ -595,8 +750,9 @@ footer a:hover{color:var(--aqua)}
   .tl{padding-left:23px}
   .node::before{left:-23px}
   .switch{top:14px;right:16px;padding:9px 13px}
-  .pal{padding:8vh 14px 14px}
+  dialog.pal{padding:8vh 14px 14px}
   .cta a,.cta button{flex:1 1 auto;justify-content:center}
+  .toast{bottom:84px}        /* clear of the floating buttons */
 }
 
 /* ============================================================
@@ -606,15 +762,17 @@ footer a:hover{color:var(--aqua)}
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
   .js .rv,.rise{opacity:1;transform:none}
   .cursor{display:none}
+  .prog{animation:none!important}
 }
 @media(prefers-reduced-transparency:reduce){
-  .pane,.rail,.status,.switch,.cta a,.cta button,.pal{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .pane,.rail,.status,.switch,.fab,.cta a,.cta button,dialog.pal::backdrop{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
   .pane,.rail,.status{background:color-mix(in srgb,var(--void) 86%,var(--text))}
   .fogwrap,.grain{display:none}
 }
 @media(prefers-contrast:more){
   :root{--dim:#D3DBE8;--faint:#A9B4C4;--hair:rgba(255,255,255,.2);--hair-2:rgba(255,255,255,.34)}
   [data-theme="light"]{--dim:#2A323D;--faint:#3E4753;--hair:rgba(16,20,26,.24);--hair-2:rgba(16,20,26,.4)}
+  .hash{opacity:1;transform:none}
 }
 
 /* ============================================================
@@ -623,7 +781,7 @@ footer a:hover{color:var(--aqua)}
    ============================================================ */
 @media print{
   @page{margin:14mm}
-  .fogwrap,.grain,.vig,.prog,.rail,.cursor,.switch,.pal,.toast,.ticker,.kbd-hint,.status .dot,.quote{display:none!important}
+  .fogwrap,.grain,.vig,.prog,.rail,.cursor,.switch,.fabs,.pal,.toast,.ticker,.kbd-hint,.status .dot,.quote,.hash{display:none!important}
   html,body{background:#fff!important;color:#000!important;font-size:10.5pt;line-height:1.42}
   .wrap{max-width:none;padding:0}
   header{min-height:0;padding:0 0 10pt;display:block}
@@ -661,11 +819,13 @@ footer a:hover{color:var(--aqua)}
   .cert::before{content:'— '}
   details.roll[open] .certs,details.roll .certs{display:block}
   .cta{display:block}
-  .cta a{padding:0!important;display:inline;color:#000!important;background:none!important}
+  .cta a{padding:0!important;display:inline;color:#000!important;background:none!important;animation:none!important}
   .cta a::after{content:' (' attr(href) ')';font-size:8.5pt;color:#555}
   .cta button{display:none}
   footer{border-top:.5pt solid #000;padding:6pt 0 0;margin-top:8pt;color:#555}
   .badge{box-shadow:none;background:none;color:#555;padding:0 0 0 6pt}
+  /* Coursework is collapsed on screen; a printed résumé should show it. */
+  details.roll > summary .tw,details.roll > summary .ct{display:none}
 }
 </style>
 </head>
@@ -681,20 +841,30 @@ footer a:hover{color:var(--aqua)}
 <div class="grain" aria-hidden="true"></div>
 <div class="cursor" id="cursor" aria-hidden="true"></div>
 
-<button class="switch" id="switch" type="button" aria-label="Switch to light theme">
-  <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-  <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-  <span id="switchLabel">LIGHT</span>
+<button class="switch" id="switch" type="button">
+  <svg class="i i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  <svg class="i i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  <svg class="i i-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg>
+  <span id="switchLabel">AUTO</span>
 </button>
 
 <nav class="rail" aria-label="Section navigation">
-  <a href="#profile" aria-label="Profile">01</a>
-  <a href="#experience" aria-label="Experience">02</a>
-  <a href="#skills" aria-label="Skills">03</a>
-  <a href="#work" aria-label="Work">04</a>
-  <a href="#credentials" aria-label="Credentials">05</a>
-  <a href="#contact" aria-label="Contact">06</a>
+  <a href="#profile"     data-label="Profile"     aria-label="Profile">01</a>
+  <a href="#experience"  data-label="Experience"  aria-label="Experience">02</a>
+  <a href="#skills"      data-label="Skills"      aria-label="Skills">03</a>
+  <a href="#work"        data-label="Work"        aria-label="Work">04</a>
+  <a href="#credentials" data-label="Credentials" aria-label="Credentials">05</a>
+  <a href="#contact"     data-label="Contact"     aria-label="Contact">06</a>
 </nav>
+
+<div class="fabs">
+  <button class="fab fab-search" id="fabSearch" type="button" aria-label="Search sections and actions">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+  </button>
+  <button class="fab fab-top" id="fabTop" type="button" aria-label="Back to top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+</div>
 
 <main id="main">
 
@@ -712,11 +882,13 @@ footer a:hover{color:var(--aqua)}
     <span class="chip">CLOUD COMPUTING</span>
   </div>
 
+  <!-- Real values live in the markup so the numbers are correct without JS
+       and correct for crawlers; the script animates from data-from to them. -->
   <div class="pane stats rise s5">
-    <div class="stat"><b data-to="2">0</b><i>SELECTIVE<br>PROGRAMS</i></div>
-    <div class="stat"><b data-to="4">0</b><i>LANGUAGES<br>SPOKEN</i></div>
-    <div class="stat"><b data-to="12">0</b><i>COURSES &amp;<br>CREDENTIALS</i></div>
-    <div class="stat"><b data-to="2030">0</b><i>SPRING<br>GRADUATION</i></div>
+    <div class="stat"><b data-to="2" data-from="0">2</b><i>SELECTIVE<br>PROGRAMS</i></div>
+    <div class="stat"><b data-to="4" data-from="0">4</b><i>LANGUAGES<br>SPOKEN</i></div>
+    <div class="stat"><b data-to="12" data-from="0">12</b><i>COURSES &amp;<br>CREDENTIALS</i></div>
+    <div class="stat"><b data-to="2030" data-from="2019">2030</b><i>SPRING<br>GRADUATION</i></div>
   </div>
 
   <button class="kbd-hint rise s5" id="hint" type="button">
@@ -734,34 +906,54 @@ footer a:hover{color:var(--aqua)}
 
 <div class="wrap">
 
-<section class="sec rv" id="profile">
-  <div class="shead" data-ghost="01"><span class="n">01</span><h2>Profile</h2><span class="ln"></span></div>
+<section class="sec rv" id="profile" aria-labelledby="h-profile">
+  <div class="shead" data-ghost="01">
+    <span class="n">01</span><h2 id="h-profile">Profile</h2>
+    <a class="hash" href="#profile" data-copy aria-label="Copy link to Profile">#</a>
+    <span class="ln"></span>
+  </div>
   <div class="pane pad">
     <dl>
-      <dt>EDUCATION</dt>
-      <dd>University of Massachusetts Amherst<small>B.S. Computer Science · September 2026 – May 2030</small></dd>
-      <dt></dt>
-      <dd>Narayana Institute<small>Grades 11 &amp; 12 · Math, Physics, Chemistry (IIT-JEE track) · 2024 – 2026</small></dd>
-      <dt>FOCUS</dt>
-      <dd>Artificial intelligence · Cloud computing</dd>
-      <dt>APPROACH</dt>
-      <dd>Learning by building. A rough prototype beats a perfect plan.</dd>
-      <dt>SEEKING</dt>
-      <dd>Summer 2027 software &amp; AI internships</dd>
-      <dt>BASED IN</dt>
-      <dd>Amherst, Massachusetts</dd>
+      <div>
+        <dt>EDUCATION</dt>
+        <dd>University of Massachusetts Amherst<small>B.S. Computer Science · September 2026 – May 2030</small></dd>
+      </div>
+      <div>
+        <dt>PREVIOUSLY</dt>
+        <dd>Narayana Institute<small>Grades 11 &amp; 12 · Math, Physics, Chemistry (IIT-JEE track) · 2024 – 2026</small></dd>
+      </div>
+      <div>
+        <dt>FOCUS</dt>
+        <dd>Artificial intelligence · Cloud computing</dd>
+      </div>
+      <div>
+        <dt>APPROACH</dt>
+        <dd>Learning by building. A rough prototype beats a perfect plan.</dd>
+      </div>
+      <div>
+        <dt>SEEKING</dt>
+        <dd>Summer 2027 software &amp; AI internships</dd>
+      </div>
+      <div>
+        <dt>BASED IN</dt>
+        <dd>Amherst, Massachusetts</dd>
+      </div>
     </dl>
   </div>
 </section>
 
-<section class="sec rv" id="experience">
-  <div class="shead" data-ghost="02"><span class="n">02</span><h2>Experience</h2><span class="ln"></span></div>
+<section class="sec rv" id="experience" aria-labelledby="h-experience">
+  <div class="shead" data-ghost="02">
+    <span class="n">02</span><h2 id="h-experience">Experience</h2>
+    <a class="hash" href="#experience" data-copy aria-label="Copy link to Experience">#</a>
+    <span class="ln"></span>
+  </div>
   <div class="tl">
 
     <article class="pane node">
       <div class="ntop">
         <h3>IIT Jammu Executive Programs</h3>
-        <span class="when">JUN – JUL 2025 · HYBRID</span>
+        <span class="when"><time datetime="2025-06">JUN</time> – <time datetime="2025-07">JUL 2025</time> · HYBRID</span>
       </div>
       <p class="role">AI &amp; Python Intern</p>
       <ul>
@@ -775,7 +967,7 @@ footer a:hover{color:var(--aqua)}
     <article class="pane node">
       <div class="ntop">
         <h3>Goethe-Institut e.V.</h3>
-        <span class="when">JUN – JUL 2023 · BREMEN, DE</span>
+        <span class="when"><time datetime="2023-06">JUN</time> – <time datetime="2023-07">JUL 2023</time> · BREMEN, DE</span>
       </div>
       <p class="role">Selected Delegate — PASCH International Exchange</p>
       <ul>
@@ -793,8 +985,12 @@ footer a:hover{color:var(--aqua)}
   <figcaption>WHAT I'M ACTUALLY CHASING</figcaption>
 </figure>
 
-<section class="sec rv" id="skills">
-  <div class="shead" data-ghost="03"><span class="n">03</span><h2>Skills</h2><span class="ln"></span></div>
+<section class="sec rv" id="skills" aria-labelledby="h-skills">
+  <div class="shead" data-ghost="03">
+    <span class="n">03</span><h2 id="h-skills">Skills</h2>
+    <a class="hash" href="#skills" data-copy aria-label="Copy link to Skills">#</a>
+    <span class="ln"></span>
+  </div>
   <div class="skills">
     <div class="sgroup sgroup--wide">
       <h3>AI &amp; AGENTS</h3>
@@ -821,27 +1017,35 @@ footer a:hover{color:var(--aqua)}
   </div>
 </section>
 
-<section class="sec rv" id="work">
-  <div class="shead" data-ghost="04"><span class="n">04</span><h2>Work</h2><span class="ln"></span></div>
+<section class="sec rv" id="work" aria-labelledby="h-work">
+  <div class="shead" data-ghost="04">
+    <span class="n">04</span><h2 id="h-work">Work</h2>
+    <a class="hash" href="#work" data-copy aria-label="Copy link to Work">#</a>
+    <span class="ln"></span>
+  </div>
 
   <!-- TODO: point these at the actual repos, not the profile root.
        A work link that lands on an empty profile costs more trust than
        having no link at all. -->
-  <a class="pane tilt work" href="https://github.com/pranavappecharla">
+  <a class="pane tilt work" href="https://github.com/pranavappecharla" target="_blank" rel="noopener">
     <div class="wtop"><h3>CALIGO</h3><span class="badge">BUILDING</span></div>
     <p>A personal assistant agent. I'm using it to find out how far context, tools, and memory carry an agent before it needs a human back in the loop — and what breaks first when they don't.</p>
     <div class="tg"><span>PYTHON · AGENT SDK · MCP</span><span class="go" aria-hidden="true">View →</span></div>
   </a>
 
-  <a class="pane tilt work" href="https://arxiv.org/">
+  <a class="pane tilt work" href="https://arxiv.org/" target="_blank" rel="noopener">
     <div class="wtop"><h3>Citation hallucination survey</h3><span class="badge b2">DRAFTING</span></div>
     <p>Why the current methods for catching fabricated citations in LLM output score well on benchmarks and fall apart on real documents. First preprint, headed for arXiv.</p>
     <div class="tg"><span>SURVEY · LLM EVALUATION · arXiv</span><span class="go" aria-hidden="true">View →</span></div>
   </a>
 </section>
 
-<section class="sec rv" id="credentials">
-  <div class="shead" data-ghost="05"><span class="n">05</span><h2>Credentials</h2><span class="ln"></span></div>
+<section class="sec rv" id="credentials" aria-labelledby="h-credentials">
+  <div class="shead" data-ghost="05">
+    <span class="n">05</span><h2 id="h-credentials">Credentials</h2>
+    <a class="hash" href="#credentials" data-copy aria-label="Copy link to Credentials">#</a>
+    <span class="ln"></span>
+  </div>
 
   <div class="issuer">CERTIFICATIONS <b>3</b><span></span></div>
   <div class="certs">
@@ -851,7 +1055,7 @@ footer a:hover{color:var(--aqua)}
   </div>
 
   <div class="issuer">COURSEWORK <b>9</b><span></span></div>
-  <details class="roll">
+  <details class="roll" id="anthropicRoll">
     <summary>
       <span class="tw" aria-hidden="true">▸</span>
       <span>Anthropic Academy — agents, MCP, and AI fluency</span>
@@ -871,17 +1075,22 @@ footer a:hover{color:var(--aqua)}
   </details>
 </section>
 
-<section class="sec rv" id="contact">
-  <div class="shead" data-ghost="06"><span class="n">06</span><h2>Contact</h2><span class="ln"></span></div>
+<section class="sec rv" id="contact" aria-labelledby="h-contact">
+  <div class="shead" data-ghost="06">
+    <span class="n">06</span><h2 id="h-contact">Contact</h2>
+    <a class="hash" href="#contact" data-copy aria-label="Copy link to Contact">#</a>
+    <span class="ln"></span>
+  </div>
   <div class="pane pad">
     <p class="lede" style="margin-bottom:24px">Open to internships, side projects, and anything where I'd learn faster than I would on my own. Grab a slot on my calendar, or just send a note.</p>
     <div class="cta">
-      <a class="pri" href="https://calendly.com/pranav-appecharla/30min">Book 30 minutes →</a>
+      <a class="pri" href="https://calendly.com/pranav-appecharla/30min" target="_blank" rel="noopener">Book 30 minutes →</a>
       <button type="button" id="copyMail" data-mail="pranav.appecharla@gmail.com">Copy email</button>
-      <a href="https://linkedin.com/in/pranavappecharla">LinkedIn ↗</a>
-      <a href="https://github.com/pranavappecharla">GitHub ↗</a>
-      <!-- TODO: drop resume.pdf next to this file, or this 404s. -->
-      <a href="resume.pdf" download>Résumé ↓</a>
+      <a href="https://linkedin.com/in/pranavappecharla" target="_blank" rel="me noopener">LinkedIn ↗</a>
+      <a href="https://github.com/pranavappecharla" target="_blank" rel="me noopener">GitHub ↗</a>
+      <!-- TODO: drop resume.pdf next to this file. Until you do, the click
+           falls back to the print stylesheet instead of a 404. -->
+      <a href="resume.pdf" id="resumeLink" download>Résumé ↓</a>
     </div>
   </div>
 </section>
@@ -900,15 +1109,21 @@ footer a:hover{color:var(--aqua)}
 <!-- ============================================================
      COMMAND PALETTE
      ============================================================ -->
-<div class="pal" id="pal" role="dialog" aria-modal="true" aria-label="Command palette">
+<dialog class="pal" id="pal" aria-label="Search sections and actions">
   <div class="palbox">
-    <input id="palInput" type="text" placeholder="Search sections and actions…" autocomplete="off" spellcheck="false" aria-label="Search sections and actions" aria-controls="palList" />
+    <div class="palhead">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="palInput" type="text" placeholder="Search sections, projects, skills…"
+             autocomplete="off" spellcheck="false" role="combobox"
+             aria-expanded="true" aria-autocomplete="list" aria-controls="palList"
+             aria-label="Search sections, projects, skills and actions" />
+    </div>
     <div class="pallist" id="palList" role="listbox" aria-label="Results"></div>
     <div class="palfoot">
-      <span>↑↓ navigate</span><span>↵ open</span><span>esc close</span>
+      <span>↑↓ navigate</span><span>↵ open</span><span>esc close</span><span>t theme</span>
     </div>
   </div>
-</div>
+</dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -917,14 +1132,16 @@ footer a:hover{color:var(--aqua)}
   'use strict';
 
   var doc = document.documentElement;
-  var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var motionQ = matchMedia('(prefers-reduced-motion: reduce)');
+  var reduced = motionQ.matches;
   var fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
   var apple = /Mac|iPod|iPhone|iPad/.test(navigator.platform || '');
+  motionQ.addEventListener && motionQ.addEventListener('change', function (e) { reduced = e.matches; });
 
   /* ---------------------------------------------------------
-     Shared rAF scheduler. The original ran three independent
-     animation loops forever; this runs one, only when there's
-     work, and stops when the tab is hidden.
+     Shared rAF scheduler. Three independent animation loops
+     become one, which only runs when there is work and stops
+     when the tab is hidden.
      --------------------------------------------------------- */
   var jobs = new Set();
   var ticking = false;
@@ -950,35 +1167,85 @@ footer a:hover{color:var(--aqua)}
   /* --------------------------------------------------------- Year */
   document.getElementById('yr').textContent = new Date().getFullYear();
 
-  /* --------------------------------------------------------- Theme */
+  /* ---------------------------------------------------------
+     THEME — three states: auto / light / dark.
+     "auto" keeps following the OS for as long as it's selected,
+     which the old two-state toggle could not do once clicked.
+     --------------------------------------------------------- */
   var switchBtn = document.getElementById('switch');
   var switchLabel = document.getElementById('switchLabel');
+  var sysLight = matchMedia('(prefers-color-scheme: light)');
+  var ORDER = ['auto', 'light', 'dark'];
+
+  function pref() { return doc.getAttribute('data-theme-pref') || 'auto'; }
+  function resolve(p) { return p === 'auto' ? (sysLight.matches ? 'light' : 'dark') : p; }
 
   function paintSwitch() {
-    var light = doc.getAttribute('data-theme') === 'light';
-    switchLabel.textContent = light ? 'DARK' : 'LIGHT';
-    switchBtn.setAttribute('aria-label', 'Switch to ' + (light ? 'dark' : 'light') + ' theme');
+    var p = pref();
+    switchLabel.textContent = p.toUpperCase();
+    switchBtn.setAttribute('aria-label',
+      'Theme: ' + p + (p === 'auto' ? ' (following system)' : '') + '. Click to change.');
   }
-  function setTheme(next) {
-    doc.setAttribute('data-theme', next);
-    try { localStorage.setItem('theme', next); } catch (e) {}
+
+  function commit(p) {
+    doc.setAttribute('data-theme-pref', p);
+    doc.setAttribute('data-theme', resolve(p));
+    try { localStorage.setItem('theme-pref', p); } catch (e) {}
     paintSwitch();
   }
-  function toggleTheme() {
-    setTheme(doc.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
-  }
-  paintSwitch();
-  switchBtn.addEventListener('click', toggleTheme);
 
-  /* --------------------------------------------------------- Progress */
-  var prog = document.getElementById('prog');
-  function paintProgress() {
-    var h = document.documentElement.scrollHeight - innerHeight;
-    prog.style.width = (h > 0 ? Math.min(scrollY / h, 1) * 100 : 0) + '%';
+  /* Circular wipe out of wherever the change was triggered from.
+     Falls back to a plain swap anywhere View Transitions is missing
+     or motion is unwelcome. */
+  function setPref(p, ev) {
+    var run = function () { commit(p); };
+    if (reduced || !document.startViewTransition) { run(); return; }
+
+    var x, y;
+    if (ev && typeof ev.clientX === 'number' && (ev.clientX || ev.clientY)) {
+      x = ev.clientX; y = ev.clientY;
+    } else {
+      var r = switchBtn.getBoundingClientRect();
+      x = r.left + r.width / 2; y = r.top + r.height / 2;
+    }
+    var far = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+
+    var t = document.startViewTransition(run);
+    t.ready.then(function () {
+      doc.animate(
+        { clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)',
+                     'circle(' + far + 'px at ' + x + 'px ' + y + 'px)'] },
+        { duration: 520, easing: 'cubic-bezier(.3,.8,.3,1)', pseudoElement: '::view-transition-new(root)' }
+      );
+    }).catch(function () {});
   }
-  addEventListener('scroll', function () { queue(paintProgress); }, { passive: true });
-  addEventListener('resize', function () { queue(paintProgress); }, { passive: true });
-  paintProgress();
+
+  function cycleTheme(ev) {
+    setPref(ORDER[(ORDER.indexOf(pref()) + 1) % ORDER.length], ev);
+  }
+
+  paintSwitch();
+  switchBtn.addEventListener('click', cycleTheme);
+  // Only meaningful while the preference is "auto".
+  sysLight.addEventListener('change', function () {
+    if (pref() === 'auto') doc.setAttribute('data-theme', resolve('auto'));
+  });
+
+  /* ---------------------------------------------------------
+     PROGRESS — only wire up the scroll listener where CSS
+     scroll-timeline isn't doing the job already.
+     --------------------------------------------------------- */
+  var prog = document.getElementById('prog');
+  var cssDrivesProgress = !!(window.CSS && CSS.supports && CSS.supports('animation-timeline', 'scroll()'));
+  if (!cssDrivesProgress) {
+    var paintProgress = function () {
+      var h = doc.scrollHeight - innerHeight;
+      prog.style.transform = 'scaleX(' + (h > 0 ? Math.min(scrollY / h, 1) : 0) + ')';
+    };
+    addEventListener('scroll', function () { queue(paintProgress); }, { passive: true });
+    addEventListener('resize', function () { queue(paintProgress); }, { passive: true });
+    paintProgress();
+  }
 
   /* --------------------------------------------------------- Reveal */
   if ('IntersectionObserver' in window) {
@@ -995,6 +1262,8 @@ footer a:hover{color:var(--aqua)}
   /* --------------------------------------------------------- Counters */
   document.querySelectorAll('.stat b').forEach(function (el) {
     var to = parseInt(el.getAttribute('data-to'), 10);
+    var from = parseInt(el.getAttribute('data-from') || '0', 10);
+    if (isNaN(to)) return;
     if (reduced || !('IntersectionObserver' in window)) { el.textContent = to; return; }
     var cio = new IntersectionObserver(function (entries) {
       if (!entries[0].isIntersecting) return;
@@ -1003,7 +1272,7 @@ footer a:hover{color:var(--aqua)}
       requestAnimationFrame(function step(t) {
         if (!t0) t0 = t;
         var p = Math.min((t - t0) / dur, 1);
-        el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+        el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3)));
         if (p < 1) requestAnimationFrame(step);
       });
     }, { threshold: 0.6 });
@@ -1053,12 +1322,12 @@ footer a:hover{color:var(--aqua)}
   if (!reduced && fine) {
     var fw = document.getElementById('fogwrap');
     var fx = 0, fy = 0, tx = 0, ty = 0;
-    function settle() {
+    var settle = function () {
       fx += (tx - fx) * 0.055;
       fy += (ty - fy) * 0.055;
       fw.style.transform = 'translate3d(' + fx.toFixed(2) + 'px,' + fy.toFixed(2) + 'px,0)';
       if (Math.abs(tx - fx) > 0.1 || Math.abs(ty - fy) > 0.1) queue(settle);
-    }
+    };
     addEventListener('mousemove', function (e) {
       tx = (e.clientX / innerWidth - 0.5) * -30;
       ty = (e.clientY / innerHeight - 0.5) * -22;
@@ -1070,12 +1339,12 @@ footer a:hover{color:var(--aqua)}
   if (!reduced && fine && innerWidth >= 1180) {
     var cur = document.getElementById('cursor');
     var cx = innerWidth / 2, cy = innerHeight / 2, gx = cx, gy = cy, awake = false;
-    function glide() {
+    var glide = function () {
       cx += (gx - cx) * 0.24;
       cy += (gy - cy) * 0.24;
       cur.style.transform = 'translate3d(' + cx.toFixed(1) + 'px,' + cy.toFixed(1) + 'px,0)';
       if (Math.abs(gx - cx) > 0.25 || Math.abs(gy - cy) > 0.25) queue(glide);
-    }
+    };
     addEventListener('mousemove', function (e) {
       gx = e.clientX; gy = e.clientY;
       if (!awake) { awake = true; cur.style.opacity = '1'; }
@@ -1093,29 +1362,79 @@ footer a:hover{color:var(--aqua)}
     toastEl.textContent = msg;
     toastEl.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2400);
   }
 
-  /* --------------------------------------------------------- Copy email */
-  var MAIL = document.getElementById('copyMail').getAttribute('data-mail');
-  function copyMail() {
-    function done() { toast('Email copied — ' + MAIL); }
+  /* --------------------------------------------------------- Clipboard */
+  function copyText(str) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(MAIL).then(done).catch(fallback);
-    } else { fallback(); }
-    function fallback() {
+      return navigator.clipboard.writeText(str);
+    }
+    return new Promise(function (resolve, reject) {
       var ta = document.createElement('textarea');
-      ta.value = MAIL;
+      ta.value = str;
       ta.setAttribute('readonly', '');
-      ta.style.cssText = 'position:absolute;left:-9999px';
+      ta.style.cssText = 'position:fixed;top:0;left:-9999px';
       document.body.appendChild(ta);
       ta.select();
-      try { document.execCommand('copy'); done(); }
-      catch (e) { location.href = 'mailto:' + MAIL; }
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
       document.body.removeChild(ta);
-    }
+      ok ? resolve() : reject(new Error('copy failed'));
+    });
+  }
+
+  var MAIL = document.getElementById('copyMail').getAttribute('data-mail');
+  function copyMail() {
+    copyText(MAIL)
+      .then(function () { toast('Email copied — ' + MAIL); })
+      .catch(function () { location.href = 'mailto:' + MAIL; });
   }
   document.getElementById('copyMail').addEventListener('click', copyMail);
+
+  /* --------------------------------------------------------- Section deep links */
+  document.querySelectorAll('.hash[data-copy]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      var url = location.origin + location.pathname + a.getAttribute('href');
+      history.replaceState(null, '', a.getAttribute('href'));
+      copyText(url)
+        .then(function () { toast('Link copied — ' + a.getAttribute('href')); })
+        .catch(function () { toast('Couldn’t copy — the URL is in the address bar'); });
+    });
+  });
+
+  /* ---------------------------------------------------------
+     RÉSUMÉ — a missing resume.pdf is a 404 in front of a
+     recruiter, which is the one failure worth spending code on.
+     Probe first; fall back to the print stylesheet.
+     --------------------------------------------------------- */
+  var resumeLink = document.getElementById('resumeLink');
+  function openResume(e) {
+    if (location.protocol === 'file:' || !window.fetch) return;  // let the browser do its thing
+    if (e) e.preventDefault();
+    fetch('resume.pdf', { method: 'HEAD' }).then(function (r) {
+      if (r.ok) { location.href = 'resume.pdf'; return; }
+      toast('No PDF yet — opening the print view');
+      setTimeout(function () { window.print(); }, 900);
+    }).catch(function () { location.href = 'resume.pdf'; });
+  }
+  resumeLink.addEventListener('click', openResume);
+
+  /* --------------------------------------------------------- Floating actions */
+  var fabTop = document.getElementById('fabTop');
+  var fabSearch = document.getElementById('fabSearch');
+  function paintFabs() {
+    var deep = scrollY > innerHeight * 0.6;
+    fabTop.classList.toggle('on', deep);
+    fabSearch.classList.toggle('on', deep || innerWidth <= 1180);
+  }
+  addEventListener('scroll', function () { queue(paintFabs); }, { passive: true });
+  addEventListener('resize', function () { queue(paintFabs); }, { passive: true });
+  paintFabs();
+  fabTop.addEventListener('click', function () {
+    scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+  });
 
   /* ---------------------------------------------------------
      COMMAND PALETTE
@@ -1123,77 +1442,184 @@ footer a:hover{color:var(--aqua)}
   var pal = document.getElementById('pal');
   var palInput = document.getElementById('palInput');
   var palList = document.getElementById('palList');
-  var hintKey = document.getElementById('hintKey');
-  hintKey.textContent = apple ? '⌘' : 'Ctrl';
+  var modal = typeof pal.showModal === 'function';
+  document.getElementById('hintKey').textContent = apple ? '⌘' : 'Ctrl';
 
-  function goto(id) {
+  function goto(id, flashEl) {
     var el = document.getElementById(id);
     if (!el) return;
     el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    var target = flashEl || null;
+    if (!target) return;
+    // Let the smooth scroll get underway before drawing attention.
+    setTimeout(function () {
+      target.classList.remove('flash');
+      void target.offsetWidth;           // restart the animation
+      target.classList.add('flash');
+      setTimeout(function () { target.classList.remove('flash'); }, 1800);
+    }, reduced ? 0 : 420);
   }
 
-  var ITEMS = [
-    { g: 'Jump to', ic: '01', label: 'Profile',      run: function () { goto('profile'); } },
-    { g: 'Jump to', ic: '02', label: 'Experience',   run: function () { goto('experience'); } },
-    { g: 'Jump to', ic: '03', label: 'Skills',       run: function () { goto('skills'); } },
-    { g: 'Jump to', ic: '04', label: 'Work',         run: function () { goto('work'); } },
-    { g: 'Jump to', ic: '05', label: 'Credentials',  run: function () { goto('credentials'); } },
-    { g: 'Jump to', ic: '06', label: 'Contact',      run: function () { goto('contact'); } },
+  var STATIC = [
+    { g: 'Jump to', ic: '01', label: 'Profile',     run: function () { goto('profile'); } },
+    { g: 'Jump to', ic: '02', label: 'Experience',  run: function () { goto('experience'); } },
+    { g: 'Jump to', ic: '03', label: 'Skills',      run: function () { goto('skills'); } },
+    { g: 'Jump to', ic: '04', label: 'Work',        run: function () { goto('work'); } },
+    { g: 'Jump to', ic: '05', label: 'Credentials', run: function () { goto('credentials'); } },
+    { g: 'Jump to', ic: '06', label: 'Contact',     run: function () { goto('contact'); } },
 
-    { g: 'Get in touch', ic: '@', label: 'Copy email address', meta: MAIL, run: copyMail },
-    { g: 'Get in touch', ic: '◷', label: 'Book 30 minutes', meta: 'CALENDLY', run: function () { window.open('https://calendly.com/pranav-appecharla/30min', '_blank', 'noopener'); } },
+    { g: 'Get in touch', ic: '@',  label: 'Copy email address', meta: MAIL, run: copyMail },
+    { g: 'Get in touch', ic: '◷',  label: 'Book 30 minutes', meta: 'CALENDLY', run: function () { window.open('https://calendly.com/pranav-appecharla/30min', '_blank', 'noopener'); } },
     { g: 'Get in touch', ic: 'in', label: 'Open LinkedIn', meta: 'LINKEDIN', run: function () { window.open('https://linkedin.com/in/pranavappecharla', '_blank', 'noopener'); } },
     { g: 'Get in touch', ic: '{}', label: 'Open GitHub', meta: 'GITHUB', run: function () { window.open('https://github.com/pranavappecharla', '_blank', 'noopener'); } },
 
-    { g: 'Page', ic: '↓', label: 'Download résumé', meta: 'PDF', run: function () { location.href = 'resume.pdf'; } },
+    { g: 'Page', ic: '↓', label: 'Download résumé', meta: 'PDF', run: function () { openResume(null); } },
     { g: 'Page', ic: '⎙', label: 'Print as résumé', meta: apple ? '⌘P' : 'CTRL P', run: function () { setTimeout(function () { window.print(); }, 120); } },
-    { g: 'Page', ic: '◐', label: 'Toggle light / dark theme', run: toggleTheme }
+    { g: 'Page', ic: '◐', label: 'Cycle theme — auto, light, dark', meta: 'T', run: function () { cycleTheme(null); } },
+    { g: 'Page', ic: '#', label: 'Copy link to this page', run: function () {
+        copyText(location.origin + location.pathname)
+          .then(function () { toast('Page link copied'); })
+          .catch(function () { toast('Couldn’t copy that'); });
+      } }
   ];
 
+  /* Everything on the page is searchable, not just the six section names.
+     Built from the DOM so it can't drift out of sync with the content. */
+  function harvest() {
+    var out = [];
+    var seq = 0;
+    function add(g, ic, label, meta, sectionId, el) {
+      if (!label) return;
+      if (el && !el.id) el.id = 'x-' + (++seq);
+      out.push({
+        g: g, ic: ic, label: label, meta: meta,
+        run: function () { goto(sectionId, el); }
+      });
+    }
+    document.querySelectorAll('#work .work').forEach(function (card) {
+      var h = card.querySelector('h3');
+      var b = card.querySelector('.badge');
+      add('Projects', '▸', h && h.textContent.trim(), b && b.textContent.trim(), 'work', card);
+    });
+    document.querySelectorAll('#experience .node').forEach(function (card) {
+      var h = card.querySelector('h3');
+      var r = card.querySelector('.role');
+      add('Experience', '▸', h && h.textContent.trim(), r && r.textContent.trim().toUpperCase().slice(0, 22), 'experience', card);
+    });
+    document.querySelectorAll('#skills .pill').forEach(function (p) {
+      var group = p.closest('.sgroup');
+      var gh = group && group.querySelector('h3');
+      // .textContent swallows the <small> qualifier; trim it back off.
+      var small = p.querySelector('small');
+      var label = small ? p.textContent.replace(small.textContent, '').trim() : p.textContent.trim();
+      add('Skills', '·', label, gh && gh.textContent.trim(), 'skills', p);
+    });
+    document.querySelectorAll('#credentials .cert').forEach(function (c) {
+      var issuer = c.querySelector('i');
+      var label = issuer ? c.textContent.replace(issuer.textContent, '').trim() : c.textContent.trim();
+      var inRoll = c.closest('details.roll');
+      out.push({
+        g: 'Credentials', ic: '✓', label: label,
+        meta: issuer ? issuer.textContent.trim().slice(0, 20) : (inRoll ? 'ANTHROPIC ACADEMY' : ''),
+        run: function () {
+          if (inRoll) inRoll.open = true;   // no point scrolling to something collapsed
+          if (!c.id) c.id = 'c-' + (++seq);
+          goto('credentials', c);
+        }
+      });
+    });
+    return out;
+  }
+
+  var ITEMS = STATIC.concat(harvest());
   var results = [];
   var cursorIdx = 0;
 
-  /* Subsequence match, so "cpml" finds "Copy email". */
-  function score(q, s) {
-    if (!q) return 1;
-    q = q.toLowerCase(); s = s.toLowerCase();
-    var direct = s.indexOf(q);
-    if (direct === 0) return 1000;
-    if (direct > 0) return 500 - direct;
-    var qi = 0, hits = 0;
-    for (var i = 0; i < s.length && qi < q.length; i++) {
-      if (s[i] === q[qi]) { qi++; hits++; }
+  /* Subsequence match, so "cpml" finds "Copy email". Returns the matched
+     character positions too, so they can be highlighted.
+
+     Scoring a subsequence purely by hit count makes every match of the same
+     query length a tie, which is how "mcp" ranked "IIT Jam(m)u Exe(c)utive
+     (P)rograms" alongside "Model Context Protocol". Weighting hits that land
+     on word boundaries — and runs that stay contiguous — makes the acronym
+     read as the better match, which is what a human means by it. */
+  function match(q, s) {
+    if (!q) return { s: 1, hit: null };
+    var ls = s.toLowerCase(), lq = q.toLowerCase();
+    var d = ls.indexOf(lq);
+    if (d > -1) {
+      var idx = [];
+      for (var i = 0; i < lq.length; i++) idx.push(d + i);
+      return { s: d === 0 ? 1000 : 500 - d, hit: idx };
     }
-    return qi === q.length ? hits : 0;
+    var qi = 0, sub = [];
+    for (var j = 0; j < ls.length && qi < lq.length; j++) {
+      if (ls[j] === lq[qi]) { sub.push(j); qi++; }
+    }
+    if (qi !== lq.length) return { s: 0, hit: null };
+
+    var sc = 0;
+    for (var k = 0; k < sub.length; k++) {
+      var at = sub[k];
+      sc += (at === 0 || /[^a-z0-9]/.test(ls.charAt(at - 1))) ? 12 : 3;
+      if (k > 0 && sub[k] === sub[k - 1] + 1) sc += 6;
+    }
+    sc -= (sub[sub.length - 1] - sub[0]) * 0.15;   // prefer tight matches
+    return { s: Math.max(sc, 1), hit: sub };
+  }
+
+  var ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  function esc(t) { return String(t).replace(/[&<>"']/g, function (c) { return ESC[c]; }); }
+
+  function highlight(text, hit) {
+    if (!hit || !hit.length) return esc(text);
+    var on = {}, i;
+    for (i = 0; i < hit.length; i++) on[hit[i]] = true;
+    var out = '', open = false;
+    for (i = 0; i < text.length; i++) {
+      if (on[i] && !open) { out += '<mark>'; open = true; }
+      else if (!on[i] && open) { out += '</mark>'; open = false; }
+      out += esc(text[i]);
+    }
+    return out + (open ? '</mark>' : '');
   }
 
   function render() {
     var q = palInput.value.trim();
     results = ITEMS
-      .map(function (it) { return { it: it, s: score(q, it.label + ' ' + it.g) }; })
-      .filter(function (r) { return r.s > 0; })
-      .sort(function (a, b) { return b.s - a.s; })
-      .map(function (r) { return r.it; });
+      .map(function (it) {
+        var onLabel = match(q, it.label);
+        if (onLabel.s > 0) return { it: it, s: onLabel.s + 60, hit: onLabel.hit };
+        // Group and meta are still searchable, just ranked below the label.
+        var onElse = match(q, it.g + ' ' + (it.meta || ''));
+        return onElse.s > 0 ? { it: it, s: onElse.s, hit: null } : null;
+      })
+      .filter(Boolean)
+      .sort(function (a, b) { return b.s - a.s; });
 
     if (!results.length) {
       palList.innerHTML = '<div class="palempty">Nothing matches that.</div>';
+      palInput.removeAttribute('aria-activedescendant');
       return;
     }
 
     cursorIdx = Math.min(cursorIdx, results.length - 1);
     var html = '', lastGroup = '';
-    results.forEach(function (it, i) {
+    results.forEach(function (r, i) {
+      var it = r.it;
       if (!q && it.g !== lastGroup) {
-        html += '<div class="palgroup">' + it.g.toUpperCase() + '</div>';
+        html += '<div class="palgroup">' + esc(it.g.toUpperCase()) + '</div>';
         lastGroup = it.g;
       }
-      html += '<button class="palitem" type="button" role="option" data-i="' + i + '" aria-selected="' + (i === cursorIdx) + '">' +
-              '<span class="ic">' + it.ic + '</span>' +
-              '<span>' + it.label + '</span>' +
-              (it.meta ? '<span class="meta">' + it.meta + '</span>' : '') +
-              '</button>';
+      html += '<div class="palitem" id="pal-opt-' + i + '" role="option" data-i="' + i + '" ' +
+              'aria-selected="' + (i === cursorIdx) + '">' +
+              '<span class="ic">' + esc(it.ic) + '</span>' +
+              '<span class="lbl">' + highlight(it.label, r.hit) + '</span>' +
+              (it.meta ? '<span class="meta">' + esc(it.meta) + '</span>' : '') +
+              '</div>';
     });
     palList.innerHTML = html;
+    palInput.setAttribute('aria-activedescendant', 'pal-opt-' + cursorIdx);
   }
 
   function move(delta) {
@@ -1202,61 +1628,117 @@ footer a:hover{color:var(--aqua)}
     var nodes = palList.querySelectorAll('.palitem');
     nodes.forEach(function (n, i) { n.setAttribute('aria-selected', i === cursorIdx); });
     var active = nodes[cursorIdx];
-    if (active) active.scrollIntoView({ block: 'nearest' });
+    if (active) {
+      active.scrollIntoView({ block: 'nearest' });
+      palInput.setAttribute('aria-activedescendant', active.id);
+    }
   }
 
   function fire(i) {
-    var it = results[i];
-    if (!it) return;
+    var r = results[i];
+    if (!r) return;
     closePal();
-    it.run();
+    r.it.run();
   }
 
   var lastFocus = null;
-  function openPal() {
-    lastFocus = document.activeElement;
-    pal.setAttribute('open', '');
-    palInput.value = '';
+  function isOpen() { return pal.hasAttribute('open'); }
+
+  /* Single teardown path, and deliberately idempotent: it is called
+     synchronously by closePal() AND wired to the native `close` event, so
+     whichever route dismissed the dialog, cleanup happens exactly once in
+     effect. Not every engine fires `close` — leaning on that event alone
+     leaves body{overflow:hidden} stuck and the page unscrollable, so the
+     synchronous call is the one that must be reliable.
+
+     Restoring focus is guarded too: never hand it back to something inside
+     the palette. Focus parked on a hidden input is invisible to a sighted
+     user and swallows every subsequent single-key shortcut. */
+  function afterClose() {
+    document.body.style.overflow = '';
+    var back = lastFocus;
+    lastFocus = null;
+    if (back && back.focus && back !== document.body && document.contains(back) && !pal.contains(back)) {
+      back.focus();
+    }
+    // Belt and braces: if there was nothing sensible to return to, focus can
+    // still be sitting on the input inside the now-hidden dialog. Blur it, or
+    // the next keystroke goes somewhere the user cannot see.
+    if (pal.contains(document.activeElement) && document.activeElement.blur) {
+      document.activeElement.blur();
+    }
+  }
+
+  function openPal(seed) {
+    if (isOpen()) return;
+    var ae = document.activeElement;
+    lastFocus = (ae && !pal.contains(ae)) ? ae : null;
+    if (modal) { pal.showModal(); } else { pal.setAttribute('open', ''); }
+    palInput.value = seed || '';
     cursorIdx = 0;
     render();
     palInput.focus();
     document.body.style.overflow = 'hidden';
   }
   function closePal() {
-    pal.removeAttribute('open');
-    document.body.style.overflow = '';
-    if (lastFocus && lastFocus.focus) lastFocus.focus();
+    if (!isOpen()) return;
+    if (modal) { pal.close(); } else { pal.removeAttribute('open'); }
+    afterClose();
   }
 
-  document.getElementById('hint').addEventListener('click', openPal);
+  document.getElementById('hint').addEventListener('click', function () { openPal(); });
+  fabSearch.addEventListener('click', function () { openPal(); });
 
   palInput.addEventListener('input', function () { cursorIdx = 0; render(); });
 
   palList.addEventListener('click', function (e) {
-    var btn = e.target.closest('.palitem');
-    if (btn) fire(parseInt(btn.getAttribute('data-i'), 10));
+    var row = e.target.closest('.palitem');
+    if (row) fire(parseInt(row.getAttribute('data-i'), 10));
+  });
+  palList.addEventListener('pointermove', function (e) {
+    var row = e.target.closest('.palitem');
+    if (!row) return;
+    var i = parseInt(row.getAttribute('data-i'), 10);
+    if (i === cursorIdx) return;
+    cursorIdx = i;
+    palList.querySelectorAll('.palitem').forEach(function (n, k) { n.setAttribute('aria-selected', k === i); });
+    palInput.setAttribute('aria-activedescendant', row.id);
   });
 
-  pal.addEventListener('mousedown', function (e) {
-    if (e.target === pal) closePal();
-  });
+  // Clicking the backdrop dismisses. With showModal() the dialog element
+  // itself IS the backdrop area, so an event on it directly means outside.
+  pal.addEventListener('mousedown', function (e) { if (e.target === pal) closePal(); });
+  // <dialog> can close itself (Esc, form dismissal) without going through
+  // closePal(), so the teardown hangs off the event, not the caller.
+  pal.addEventListener('close', afterClose);
+
+  function typingInField(el) {
+    if (!el) return false;
+    // The palette runs its own key handling; anything inside it — including a
+    // closed one still holding focus — must not block the page shortcuts.
+    if (pal.contains(el)) return false;
+    return /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable;
+  }
 
   addEventListener('keydown', function (e) {
-    var isOpen = pal.hasAttribute('open');
+    var open = isOpen();
 
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
-      isOpen ? closePal() : openPal();
+      open ? closePal() : openPal();
       return;
     }
-    if (!isOpen) {
-      // "/" opens search, the way it does almost everywhere else.
+
+    if (!open) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
       var ae = document.activeElement;
-      if (e.key === '/' && !(ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName))) {
-        e.preventDefault(); openPal();
-      }
+      if (typingInField(ae)) return;
+      if (e.key === '/') { e.preventDefault(); openPal(); }
+      else if (e.key === '?') { e.preventDefault(); openPal(); }
+      else if (e.key === 't' || e.key === 'T') { e.preventDefault(); cycleTheme(null); }
       return;
     }
+
     if (e.key === 'Escape') { e.preventDefault(); closePal(); }
     else if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
@@ -1272,14 +1754,62 @@ footer a:hover{color:var(--aqua)}
   "@type": "Person",
   "name": "Sai Pranav Appecharla Venkata",
   "alternateName": "Pranav Appecharla",
+  "givenName": "Pranav",
+  "familyName": "Appecharla",
   "jobTitle": "Computer Science Student",
   "description": "Computer Science student at UMass Amherst focused on artificial intelligence and cloud computing.",
+  "url": "https://pranavappecharla.github.io/",
+  "image": "https://pranavappecharla.github.io/og-image.png",
   "email": "mailto:pranav.appecharla@gmail.com",
-  "knowsLanguage": ["English", "Telugu", "Hindi", "German"],
-  "knowsAbout": ["Artificial Intelligence", "Machine Learning", "Cloud Computing", "Model Context Protocol", "Python", "Java", "Cybersecurity"],
-  "alumniOf": {
-    "@type": "CollegeOrUniversity",
-    "name": "University of Massachusetts Amherst"
+  "knowsLanguage": [
+    { "@type": "Language", "name": "English" },
+    { "@type": "Language", "name": "Telugu" },
+    { "@type": "Language", "name": "Hindi" },
+    { "@type": "Language", "name": "German" }
+  ],
+  "knowsAbout": [
+    "Artificial Intelligence", "Machine Learning", "Cloud Computing",
+    "Model Context Protocol", "AI Agents", "Python", "Java", "Cybersecurity"
+  ],
+  "homeLocation": {
+    "@type": "Place",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Amherst",
+      "addressRegion": "MA",
+      "addressCountry": "US"
+    }
+  },
+  "alumniOf": [
+    {
+      "@type": "CollegeOrUniversity",
+      "name": "University of Massachusetts Amherst",
+      "sameAs": "https://www.umass.edu/"
+    }
+  ],
+  "hasCredential": [
+    {
+      "@type": "EducationalOccupationalCredential",
+      "name": "Google Cybersecurity Professional Certificate",
+      "credentialCategory": "certificate",
+      "recognizedBy": { "@type": "Organization", "name": "Google" }
+    },
+    {
+      "@type": "EducationalOccupationalCredential",
+      "name": "Programming with Python & Exposure to A.I.",
+      "credentialCategory": "certificate",
+      "recognizedBy": { "@type": "Organization", "name": "IIT Jammu Executive Programs" }
+    },
+    {
+      "@type": "EducationalOccupationalCredential",
+      "name": "Cybersecurity & Ethical Hacking Workshop",
+      "credentialCategory": "certificate",
+      "recognizedBy": { "@type": "Organization", "name": "Aylence · IIIT Hyderabad" }
+    }
+  ],
+  "seeks": {
+    "@type": "Demand",
+    "name": "Summer 2027 software and AI engineering internships"
   },
   "sameAs": [
     "https://github.com/pranavappecharla",
