@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
 <title>Pranav Appecharla — CS @ UMass Amherst</title>
-<meta name="description" content="Computer Science at UMass Amherst. AI systems and cloud infrastructure, with an interest in the part where things have to hold up outside the demo. Open to Summer 2027 internships." />
+<meta name="description" content="Computer Science at UMass Amherst. LLM agents in Python on the Claude Agent SDK and MCP, and the evaluation harnesses that measure them. Open to Summer 2027 internships." />
 <meta name="author" content="Sai Pranav Appecharla Venkata" />
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
 <meta name="color-scheme" content="dark light" />
@@ -16,20 +16,21 @@
 <meta property="og:site_name" content="Pranav Appecharla" />
 <meta property="og:locale" content="en_US" />
 <meta property="og:title" content="Pranav Appecharla — CS @ UMass Amherst" />
-<meta property="og:description" content="AI systems, cloud infrastructure, and the part where it has to actually hold up." />
+<meta property="og:description" content="LLM agents, evaluation harnesses, and cloud infrastructure. Open to Summer 2027 internships." />
 <meta property="og:url" content="https://pranavappecharla.github.io/" />
-<!-- TODO: add a 1200x630 og-image.png next to this file. Link previews are blank without it. -->
 <meta property="og:image" content="https://pranavappecharla.github.io/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:type" content="image/png" />
 <meta property="og:image:alt" content="Pranav Appecharla — Computer Science at UMass Amherst" />
 <meta property="profile:first_name" content="Pranav" />
 <meta property="profile:last_name" content="Appecharla" />
 <meta property="profile:username" content="pranavappecharla" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Pranav Appecharla — CS @ UMass Amherst" />
-<meta name="twitter:description" content="AI systems, cloud infrastructure, and the part where it has to actually hold up." />
+<meta name="twitter:description" content="LLM agents, evaluation harnesses, and cloud infrastructure. Open to Summer 2027 internships." />
 <meta name="twitter:image" content="https://pranavappecharla.github.io/og-image.png" />
+<meta name="twitter:image:alt" content="Pranav Appecharla — Computer Science at UMass Amherst" />
 
 <meta name="theme-color" content="#05070C" media="(prefers-color-scheme: dark)" />
 <meta name="theme-color" content="#F2F0EB" media="(prefers-color-scheme: light)" />
@@ -156,6 +157,11 @@ body{
 }
 img{max-width:100%;display:block}
 :where(a){color:inherit}
+
+/* Ragging: headlines break on sense, body text avoids orphans. Both are
+   progressive — engines without them just wrap as before. */
+h1,h2,h3,blockquote,.stat i{text-wrap:balance}
+p,dd,li{text-wrap:pretty}
 
 ::selection{background:color-mix(in srgb,var(--aqua) 30%,transparent);color:var(--text)}
 ::-webkit-scrollbar{width:11px}
@@ -285,7 +291,7 @@ img{max-width:100%;display:block}
   transition:color .3s,background .3s;
 }
 .rail a:hover{color:var(--text)}
-.rail a[aria-current="true"]{color:var(--void);background:var(--aqua);box-shadow:0 0 16px color-mix(in srgb,var(--aqua) 50%,transparent)}
+.rail a[aria-current="location"]{color:var(--void);background:var(--aqua);box-shadow:0 0 16px color-mix(in srgb,var(--aqua) 50%,transparent)}
 /* The rail used to be six unlabelled numbers. Now it says what it means. */
 .rail a::after{
   content:attr(data-label);
@@ -565,13 +571,20 @@ dd a:hover{border-color:var(--aqua)}
   color:var(--aqua);background:color-mix(in srgb,var(--aqua) 10%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--aqua) 24%,transparent);
 }
 .badge.b2{color:var(--ember);background:color-mix(in srgb,var(--ember) 10%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--ember) 26%,transparent)}
+.work .sub{
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--faint);
+  margin:-4px 0 10px;position:relative;z-index:3;
+}
 .work p{font-size:14.5px;color:var(--dim);max-width:62ch;position:relative;z-index:3;line-height:1.7}
 .work .tg{
   margin-top:15px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--faint);
   position:relative;z-index:3;display:flex;align-items:center;gap:9px;flex-wrap:wrap;
 }
 .work .tg .go{margin-left:auto;color:var(--aqua);opacity:0;transform:translateX(-4px);transition:opacity .3s,transform .3s}
-.work:hover .tg .go,.work:focus-visible .tg .go{opacity:1;transform:none}
+a.work:hover .tg .go,a.work:focus-visible .tg .go{opacity:1;transform:none}
+/* A card with nothing to link to yet says so, instead of pointing at a
+   placeholder URL that lands the reader somewhere useless. */
+.work .pending{margin-left:auto;color:var(--faint);opacity:.85}
 
 /* ============================================================
    CREDENTIALS
@@ -777,7 +790,8 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
 
 /* ============================================================
    PRINT — Cmd/Ctrl+P produces a clean résumé, not a screenshot
-   of a dark website. Recruiters do this more than you'd think.
+   of a dark website. This is the fallback for anyone who prints
+   the page instead of taking resume.pdf.
    ============================================================ */
 @media print{
   @page{margin:14mm}
@@ -806,7 +820,8 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
   .node,.work{margin-bottom:8pt;break-inside:avoid}
   .node h3,.work h3{font-size:12pt;color:#000}
   .node li,.work p,dd{color:#222}
-  .role{color:#444}
+  .role,.work .sub{color:#444}
+  .work .pending{display:none}
   .skills{display:block}
   .sgroup{margin-bottom:5pt}
   .sgroup h3{color:#000;margin-bottom:3pt}
@@ -874,12 +889,13 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
 
   <h1 class="rise s2"><span class="lo">Hello, I'm</span>PRANAV<br><em>APPECHARLA</em></h1>
 
-  <p class="lede rise s3">Computer Science at <b>UMass Amherst</b>. Artificial intelligence first, cloud computing close behind — and I'm most interested in the unglamorous part, where a system has to hold up outside the demo.</p>
+  <p class="lede rise s3">Computer Science at <b>UMass Amherst</b>. I build LLM agents in Python on the Claude Agent SDK and Model Context Protocol — and the evaluation harnesses that tell me which part of one gives out first. Cloud infrastructure is the other half of what I'm learning.</p>
 
   <div class="chips rise s4">
     <span class="chip">AMHERST, MA</span>
-    <span class="chip">ARTIFICIAL INTELLIGENCE</span>
-    <span class="chip">CLOUD COMPUTING</span>
+    <span class="chip">LLM AGENTS</span>
+    <span class="chip">EVALUATION</span>
+    <span class="chip">CLOUD INFRASTRUCTURE</span>
   </div>
 
   <!-- Real values live in the markup so the numbers are correct without JS
@@ -899,8 +915,8 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
 
 <div class="ticker" aria-hidden="true">
   <div class="tk">
-    <span>ARTIFICIAL INTELLIGENCE</span><span>CLOUD COMPUTING</span><span>AGENTS</span><span>MODEL CONTEXT PROTOCOL</span><span>PYTHON</span><span>JAVA</span><span>MACHINE LEARNING</span><span>UMASS AMHERST</span>
-    <span>ARTIFICIAL INTELLIGENCE</span><span>CLOUD COMPUTING</span><span>AGENTS</span><span>MODEL CONTEXT PROTOCOL</span><span>PYTHON</span><span>JAVA</span><span>MACHINE LEARNING</span><span>UMASS AMHERST</span>
+    <span>LLM AGENTS</span><span>EVALUATION HARNESSES</span><span>MODEL CONTEXT PROTOCOL</span><span>CLAUDE AGENT SDK</span><span>PYTHON</span><span>JAVA</span><span>CLOUD COMPUTING</span><span>UMASS AMHERST</span>
+    <span>LLM AGENTS</span><span>EVALUATION HARNESSES</span><span>MODEL CONTEXT PROTOCOL</span><span>CLAUDE AGENT SDK</span><span>PYTHON</span><span>JAVA</span><span>CLOUD COMPUTING</span><span>UMASS AMHERST</span>
   </div>
 </div>
 
@@ -916,23 +932,23 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
     <dl>
       <div>
         <dt>EDUCATION</dt>
-        <dd>University of Massachusetts Amherst<small>B.S. Computer Science · September 2026 – May 2030</small></dd>
-      </div>
-      <div>
-        <dt>PREVIOUSLY</dt>
-        <dd>Narayana Institute<small>Grades 11 &amp; 12 · Math, Physics, Chemistry (IIT-JEE track) · 2024 – 2026</small></dd>
+        <dd>University of Massachusetts Amherst<small>B.S. Computer Science · Business minor (planned) · September 2026 – May 2030</small></dd>
       </div>
       <div>
         <dt>FOCUS</dt>
-        <dd>Artificial intelligence · Cloud computing</dd>
+        <dd>LLM agents and evaluation · Cloud infrastructure</dd>
       </div>
       <div>
-        <dt>APPROACH</dt>
-        <dd>Learning by building. A rough prototype beats a perfect plan.</dd>
+        <dt>CURRENTLY</dt>
+        <dd>Building CALIGO, and drafting a survey on citation hallucination in LLM output</dd>
       </div>
       <div>
         <dt>SEEKING</dt>
-        <dd>Summer 2027 software &amp; AI internships</dd>
+        <dd>Summer 2027 software &amp; AI internships<small>Boston · NYC · Worcester · Amherst</small></dd>
+      </div>
+      <div>
+        <dt>AUTHORIZATION</dt>
+        <dd>International student on an F-1 visa, CPT-eligible</dd>
       </div>
       <div>
         <dt>BASED IN</dt>
@@ -957,10 +973,9 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
       </div>
       <p class="role">AI &amp; Python Intern</p>
       <ul>
-        <li>Selected for a competitive high-school internship in AI and Python programming.</li>
-        <li>Built AI/ML models and mini-projects, working with real-world datasets.</li>
-        <li>Applied data analysis and algorithm design to practical problems.</li>
-        <li>Mentored by IIT Jammu faculty on research practice and emerging technology.</li>
+        <li>Selected for a competitive pre-university research internship in applied AI, mentored directly by IIT Jammu faculty.</li>
+        <li>Developed and evaluated machine learning models on real-world datasets, owning the loop from data cleaning through training and error analysis.</li>
+        <li>Applied algorithm design and exploratory data analysis to open problems, defending results in faculty review sessions.</li>
       </ul>
     </article>
 
@@ -971,9 +986,8 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
       </div>
       <p class="role">Selected Delegate — PASCH International Exchange</p>
       <ul>
-        <li>Fully funded month-long language and culture immersion in Bremen, Germany.</li>
-        <li>Completed intensive German language training and intercultural workshops.</li>
-        <li>Collaborated on international projects with students from across the world.</li>
+        <li>Won a fully funded place on a month-long language and culture immersion program in Germany.</li>
+        <li>Reached conversational German through intensive training, collaborating on team projects with delegates from several countries.</li>
       </ul>
     </article>
 
@@ -981,8 +995,8 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
 </section>
 
 <figure class="quote rv">
-  <blockquote>Anyone can get a demo to work once. I'd rather know <span>what it does on the bad input, at 3am, on someone else's machine.</span></blockquote>
-  <figcaption>WHAT I'M ACTUALLY CHASING</figcaption>
+  <blockquote>A demo proves an agent can do it once. <span>The harness tells you how often, and which part gives out first.</span></blockquote>
+  <figcaption>HOW I TEST WHAT I BUILD</figcaption>
 </figure>
 
 <section class="sec rv" id="skills" aria-labelledby="h-skills">
@@ -995,7 +1009,7 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
     <div class="sgroup sgroup--wide">
       <h3>AI &amp; AGENTS</h3>
       <div class="pills">
-        <span class="pill">Machine Learning</span><span class="pill">Claude Fundamentals</span><span class="pill">Claude Agent SDK</span><span class="pill">Model Context Protocol</span><span class="pill">Claude Code</span>
+        <span class="pill">LLM Agents</span><span class="pill">Claude Agent SDK</span><span class="pill">Model Context Protocol</span><span class="pill">Claude Code</span><span class="pill">Machine Learning</span><span class="pill">Evaluation Design</span>
       </div>
     </div>
     <div class="sgroup">
@@ -1011,6 +1025,10 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
       <div class="pills"><span class="pill">Network &amp; Cloud Security</span><span class="pill">Ethical Hacking</span><span class="pill">Kali Linux</span></div>
     </div>
     <div class="sgroup">
+      <h3>TOOLS</h3>
+      <div class="pills"><span class="pill">Git</span><span class="pill">GitHub</span><span class="pill">Linux &amp; CLI</span><span class="pill">HTML &amp; CSS</span></div>
+    </div>
+    <div class="sgroup sgroup--wide">
       <h3>SPOKEN</h3>
       <div class="pills"><span class="pill">English</span><span class="pill">Telugu</span><span class="pill">Hindi</span><span class="pill">German<small>CONVERSATIONAL</small></span></div>
     </div>
@@ -1024,20 +1042,24 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
     <span class="ln"></span>
   </div>
 
-  <!-- TODO: point these at the actual repos, not the profile root.
-       A work link that lands on an empty profile costs more trust than
-       having no link at all. -->
+  <!-- TODO: when the CALIGO repo is public, point this href straight at it.
+       Right now it goes to the profile root and the label says "GitHub" rather
+       than promising a repo that isn't there yet. -->
   <a class="pane tilt work" href="https://github.com/pranavappecharla" target="_blank" rel="noopener">
     <div class="wtop"><h3>CALIGO</h3><span class="badge">BUILDING</span></div>
-    <p>A personal assistant agent. I'm using it to find out how far context, tools, and memory carry an agent before it needs a human back in the loop — and what breaks first when they don't.</p>
-    <div class="tg"><span>PYTHON · AGENT SDK · MCP</span><span class="go" aria-hidden="true">View →</span></div>
+    <p class="sub">COGNITIVE ARCHITECTURE FOR LOGIC, INFERENCE &amp; GENERATIVE OPTIMIZATION</p>
+    <p>A personal assistant agent that breaks multi-step tasks apart and runs them through tool calls, persistent memory, and MCP servers. Alongside it I'm writing an evaluation harness that tracks completion across repeated runs and sorts the failures by type, so "it broke" becomes a category instead of an anecdote.</p>
+    <div class="tg"><span>PYTHON · AGENT SDK · MCP</span><span class="go" aria-hidden="true">GitHub →</span></div>
   </a>
 
-  <a class="pane tilt work" href="https://arxiv.org/" target="_blank" rel="noopener">
+  <!-- Not a link yet, on purpose: there's no preprint URL to send anyone to.
+       Swap this <article> back to an <a class="pane tilt work" href="…"> once
+       the arXiv page exists, and restore the <span class="go">View →</span>. -->
+  <article class="pane work">
     <div class="wtop"><h3>Citation hallucination survey</h3><span class="badge b2">DRAFTING</span></div>
-    <p>Why the current methods for catching fabricated citations in LLM output score well on benchmarks and fall apart on real documents. First preprint, headed for arXiv.</p>
-    <div class="tg"><span>SURVEY · LLM EVALUATION · arXiv</span><span class="go" aria-hidden="true">View →</span></div>
-  </a>
+    <p>A survey of the published methods for catching fabricated citations in LLM output, and why scores that look good on benchmarks stop predicting anything on real documents. Comparing evaluation methodologies to find where the benchmarks under-test the failures that actually show up.</p>
+    <div class="tg"><span>SURVEY · LLM EVALUATION</span><span class="pending">PREPRINT NOT PUBLISHED YET</span></div>
+  </article>
 </section>
 
 <section class="sec rv" id="credentials" aria-labelledby="h-credentials">
@@ -1082,15 +1104,15 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
     <span class="ln"></span>
   </div>
   <div class="pane pad">
-    <p class="lede" style="margin-bottom:24px">Open to internships, side projects, and anything where I'd learn faster than I would on my own. Grab a slot on my calendar, or just send a note.</p>
+    <p class="lede" style="margin-bottom:24px">Open to Summer 2027 internships, and to side projects worth building. Email is the fastest way through — the calendar link is there if a call is easier.</p>
     <div class="cta">
       <a class="pri" href="https://calendly.com/pranav-appecharla/30min" target="_blank" rel="noopener">Book 30 minutes →</a>
       <button type="button" id="copyMail" data-mail="pranav.appecharla@gmail.com">Copy email</button>
       <a href="https://linkedin.com/in/pranavappecharla" target="_blank" rel="me noopener">LinkedIn ↗</a>
       <a href="https://github.com/pranavappecharla" target="_blank" rel="me noopener">GitHub ↗</a>
-      <!-- TODO: drop resume.pdf next to this file. Until you do, the click
-           falls back to the print stylesheet instead of a 404. -->
-      <a href="resume.pdf" id="resumeLink" download>Résumé ↓</a>
+      <!-- The download attribute names the saved file, so it doesn't land in a
+           recruiter's folder as the fiftieth "resume.pdf". -->
+      <a href="resume.pdf" id="resumeLink" download="Sai-Pranav-Appecharla-Resume.pdf">Résumé ↓</a>
     </div>
   </div>
 </section>
@@ -1101,7 +1123,9 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
 <div class="wrap">
 <footer>
   <span>SAI PRANAV APPECHARLA VENKATA</span>
-  <span><a href="#main">BACK TO TOP ↑</a> · <span id="yr"></span></span>
+  <!-- Bump this by hand when the content changes; a portfolio with no date on
+       it reads as abandoned. -->
+  <span>UPDATED JUL 2026 · <a href="#main">BACK TO TOP ↑</a> · <span id="yr"></span></span>
 </footer>
 
 </div>
@@ -1114,8 +1138,8 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
     <div class="palhead">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input id="palInput" type="text" placeholder="Search sections, projects, skills…"
-             autocomplete="off" spellcheck="false" role="combobox"
-             aria-expanded="true" aria-autocomplete="list" aria-controls="palList"
+             autocomplete="off" spellcheck="false" autocapitalize="off" enterkeyhint="go"
+             role="combobox" aria-expanded="true" aria-autocomplete="list" aria-controls="palList"
              aria-label="Search sections, projects, skills and actions" />
     </div>
     <div class="pallist" id="palList" role="listbox" aria-label="Results"></div>
@@ -1286,7 +1310,13 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
       entries.forEach(function (e) {
         if (!e.isIntersecting) return;
         railLinks.forEach(function (a) {
-          a.setAttribute('aria-current', a.getAttribute('href') === '#' + e.target.id ? 'true' : 'false');
+          // aria-current="location" is the value meant for "you are here in a
+          // set of links"; "true" is the generic fallback.
+          if (a.getAttribute('href') === '#' + e.target.id) {
+            a.setAttribute('aria-current', 'location');
+          } else {
+            a.removeAttribute('aria-current');
+          }
         });
       });
     }, { rootMargin: '-45% 0px -50% 0px' });
@@ -1405,9 +1435,9 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
   });
 
   /* ---------------------------------------------------------
-     RÉSUMÉ — a missing resume.pdf is a 404 in front of a
-     recruiter, which is the one failure worth spending code on.
-     Probe first; fall back to the print stylesheet.
+     RÉSUMÉ — resume.pdf ships next to this file, but the probe
+     stays: if it ever goes missing, a recruiter gets the print
+     view instead of a 404.
      --------------------------------------------------------- */
   var resumeLink = document.getElementById('resumeLink');
   function openResume(e) {
@@ -1721,6 +1751,9 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
   }
 
   addEventListener('keydown', function (e) {
+    // Autofill and some IME commits fire keydown with no `key`; reading
+    // .toLowerCase() off undefined there would throw and kill the handler.
+    if (!e.key) return;
     var open = isOpen();
 
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -1757,7 +1790,7 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
   "givenName": "Pranav",
   "familyName": "Appecharla",
   "jobTitle": "Computer Science Student",
-  "description": "Computer Science student at UMass Amherst focused on artificial intelligence and cloud computing.",
+  "description": "Computer Science student at UMass Amherst working on LLM agents, evaluation, and cloud infrastructure.",
   "url": "https://pranavappecharla.github.io/",
   "image": "https://pranavappecharla.github.io/og-image.png",
   "email": "mailto:pranav.appecharla@gmail.com",
@@ -1768,8 +1801,9 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
     { "@type": "Language", "name": "German" }
   ],
   "knowsAbout": [
-    "Artificial Intelligence", "Machine Learning", "Cloud Computing",
-    "Model Context Protocol", "AI Agents", "Python", "Java", "Cybersecurity"
+    "Artificial Intelligence", "LLM Agents", "Machine Learning", "LLM Evaluation",
+    "Model Context Protocol", "Claude Agent SDK", "Cloud Computing",
+    "Python", "Java", "Cybersecurity"
   ],
   "homeLocation": {
     "@type": "Place",
@@ -1805,6 +1839,12 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
       "name": "Cybersecurity & Ethical Hacking Workshop",
       "credentialCategory": "certificate",
       "recognizedBy": { "@type": "Organization", "name": "Aylence · IIIT Hyderabad" }
+    },
+    {
+      "@type": "EducationalOccupationalCredential",
+      "name": "Anthropic Academy — 9 courses in agents, MCP, and AI fluency",
+      "credentialCategory": "certificate",
+      "recognizedBy": { "@type": "Organization", "name": "Anthropic" }
     }
   ],
   "seeks": {
