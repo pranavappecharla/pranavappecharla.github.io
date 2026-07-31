@@ -1001,7 +1001,7 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
 
   <h1 class="rise s2"><span class="lo">Hello, I'm</span>PRANAV<br><em>APPECHARLA</em></h1>
 
-  <p class="lede rise s3">Freshman Majoring in Computer Science at <b>UMass Amherst</b>, starting this September. Aspiring AI and Cloud Engineer</p>
+  <p class="lede rise s3">Rising freshman in Computer Science at <b>UMass Amherst</b>, starting this September. I've been learning to build AI agents in Python, mostly by getting them wrong first. Cloud computing is next.</p>
 
   <div class="chips rise s4">
     <span class="chip">BASED IN AMHERST, MASSACHUSETTS</span>
@@ -1058,15 +1058,15 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
       </div>
       <div>
         <dt>SEEKING</dt>
-        <dd>Summer 2027 software &amp; AI internships<small>Boston · New York City · Worcester · Amherst · Remote · Hybrid</small></dd>
+        <dd>Summer 2027 software &amp; AI internships<small>Boston · NYC · Worcester · Amherst</small></dd>
       </div>
       <div>
         <dt>AUTHORIZATION</dt>
-        <dd>International F-1 Student, CPT-eligible (Summer 2027 Onwards)</dd>
+        <dd>International student on an F-1 visa, CPT-eligible</dd>
       </div>
       <div>
         <dt>SPOKEN</dt>
-        <dd>English · Telugu · Hindi · German (A2) · Japanese (Learning)</dd>
+        <dd>English · Telugu · Hindi · German (A2) and Japanese (Learning)</dd>
       </div>
     </dl>
   </div>
@@ -1238,7 +1238,7 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
       <a href="https://github.com/pranavappecharla" target="_blank" rel="me noopener">GitHub ↗</a>
       <!-- The download attribute names the saved file, so it doesn't land in a
            recruiter's folder as the fiftieth "resume.pdf". -->
-      <a href="resume.pdf" id="resumeLink" download="Sai-Pranav-Appecharla-Resume.pdf">Résumé ↓</a>
+      <a href="resume.pdf" id="resumeLink" target="_blank" rel="noopener" download="Sai-Pranav-Appecharla-Resume.pdf">Résumé ↓</a>
     </div>
   </div>
 </section>
@@ -1654,10 +1654,10 @@ html[data-theme="light"] dialog.pal::backdrop{background:rgba(242,240,235,.72)}
     if (location.protocol === 'file:' || !window.fetch) return;  // let the browser do its thing
     if (e) e.preventDefault();
     fetch('resume.pdf', { method: 'HEAD' }).then(function (r) {
-      if (r.ok) { location.href = 'resume.pdf'; return; }
+      if (r.ok) { window.open('resume.pdf', '_blank', 'noopener'); return; }
       toast('No PDF yet — opening the print view');
       setTimeout(function () { window.print(); }, 900);
-    }).catch(function () { location.href = 'resume.pdf'; });
+    }).catch(function () { window.open('resume.pdf', '_blank', 'noopener'); });
   }
   resumeLink.addEventListener('click', openResume);
 
